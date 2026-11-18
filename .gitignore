@@ -12,3 +12,6 @@ DerivedData/
 
 # Raw scanner captures are never versioned
 captures/
+
+# Test deliveries written by preset tests
+runs/
