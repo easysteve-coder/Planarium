@@ -20,6 +20,7 @@ INCLUDE=(
   LICENSE
   THIRD-PARTY-NOTICES.md
   CHANGELOG.md
+  CONTRIBUTING.md
   ROADMAP.md
   Package.swift
   Sources

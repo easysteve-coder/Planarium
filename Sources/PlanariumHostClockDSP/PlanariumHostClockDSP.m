@@ -171,13 +171,22 @@ struct PlanariumNoteRing {
     PlanariumSampleNote pending[256];
     uint32_t pendingCount;
     uint64_t sounding[16 * 128];
+    _Atomic uint64_t staleOns;
 };
+/// An On this far behind the rendered sample was missed: after a render pause
+/// (load, stopped pull) every overdue On would otherwise land on offset 0 of the
+/// next block together (FoF measured +19 dBFS with Shortcircuit XT). Such Ons
+/// are dropped; Offs always go out, so nothing hangs. 4096 frames ≈ 85 ms at
+/// 48 kHz, far beyond the normal planning lead. Immediate notes carry no time
+/// and are never stale.
+static const double kStaleNoteOnFrames = 4096;
 PlanariumNoteRing *planarium_note_ring_create(void) {
     PlanariumNoteRing *r = calloc(1, sizeof(*r));
-    if (r) { atomic_init(&r->head, 0); atomic_init(&r->tail, 0); atomic_init(&r->retired, 0); atomic_init(&r->generation, 1); r->observed = 1; }
+    if (r) { atomic_init(&r->head, 0); atomic_init(&r->tail, 0); atomic_init(&r->retired, 0); atomic_init(&r->generation, 1); atomic_init(&r->staleOns, 0); r->observed = 1; }
     return r;
 }
 void planarium_note_ring_destroy(PlanariumNoteRing *r) { free(r); }
+uint64_t planarium_note_ring_stale_ons(PlanariumNoteRing *r) { return atomic_load_explicit(&r->staleOns, memory_order_relaxed); }
 uint64_t planarium_note_ring_generation(PlanariumNoteRing *r) { return atomic_load_explicit(&r->generation, memory_order_acquire); }
 uint64_t planarium_note_ring_invalidate(PlanariumNoteRing *r) {
     return atomic_fetch_add_explicit(&r->generation, 1, memory_order_acq_rel) + 1;
@@ -249,6 +258,11 @@ void planarium_note_ring_render(PlanariumNoteRing *r, double sample, uint32_t fr
         int key = (n.status & 15) * 128 + n.note;
         AUEventSampleTime offset = (AUEventSampleTime)fmax(0, n.sample - sample);
         uint8_t bytes[3] = {n.status, n.note, n.velocity};
+        if (sample_note_on(n) && n.sample > -1e300 && n.sample < sample - kStaleNoteOnFrames) {
+            atomic_fetch_add_explicit(&r->staleOns, 1, memory_order_relaxed);
+            sample_note_remove(r, 0);
+            continue;
+        }
         if (sample_note_on(n)) {
             if (r->sounding[key]) {
                 uint8_t off[3] = {0x80 | (n.status & 15), n.note, 0};

@@ -108,6 +108,11 @@ Stand liefern denselben Wert.
   Runtime-Befehl (`install(_:controller:)`); alte Pad-Besitzer werden an ihren alten Zielen gelöst,
   bevor irgendetwas des neuen Scannerplans klingt. Audio-Freigaben erfassen auch ausklingende
   Overlap-Töne und setzen die Regler des Controllers am betroffenen Kanalzug zurück.
+- **Verpasste Töne nach Renderpause:** Der Renderring verwirft ein geplantes Note-On, das mehr
+  als 4096 Frames hinter dem gerenderten Sample liegt, statt es mit anderen auf Offset 0 zu legen;
+  Note-Offs gehen immer hinaus, sofort-Noten sind ausgenommen (Zähler `planarium_note_ring_stale_ons`).
+- **Messpunkte:** Controller-Zeit = Callback-Eingang → Rückkehr des Routers auf Q; Bluetooth-/
+  Treiberzeit davor und der Audiopuffer danach sind nicht enthalten.
 - **Darstellung** auf nativer Live-Ebene (`LiveLayerView`); Gerätemeldungen und Mausbewegung zeichnen
   nur diese Ebene neu, die SwiftUI-Bühne wird dabei nicht ausgewertet (Test
   `testPadMovementRedrawsTheNativeLayerOnly`).

@@ -48,6 +48,8 @@ PlanariumNoteRing * _Nullable planarium_note_ring_create(void);
 void planarium_note_ring_destroy(PlanariumNoteRing * _Nonnull ring);
 uint64_t planarium_note_ring_invalidate(PlanariumNoteRing * _Nonnull ring);
 uint64_t planarium_note_ring_generation(PlanariumNoteRing * _Nonnull ring);
+/// Overdue Note-Ons dropped by render (diagnostics; relaxed counter).
+uint64_t planarium_note_ring_stale_ons(PlanariumNoteRing * _Nonnull ring);
 int planarium_note_ring_push(PlanariumNoteRing * _Nonnull ring, PlanariumSampleNote note);
 void planarium_note_ring_render(PlanariumNoteRing * _Nonnull ring, double sample, uint32_t frames,
                                AUScheduleMIDIEventBlock __unsafe_unretained _Nonnull midi);

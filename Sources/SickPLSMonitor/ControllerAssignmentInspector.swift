@@ -90,6 +90,89 @@ enum ControllerAssignmentEditing {
     }
 }
 
+/// How far sticks and triggers must move before they play. These values are
+/// shared by all sticks or all triggers of the pad; every rule keeps the layout
+/// valid (`release ≤ start`, both inside 5…90 %), so the compiler never rejects
+/// an edit made here.
+enum ControllerFeelEditing {
+    static let percentRange = 5...90
+    static func percent(_ value: Double) -> Int { Int((value * 100).rounded()) }
+    static func clamped(_ percent: Int) -> Double { Double(min(percentRange.upperBound, max(percentRange.lowerBound, percent))) / 100 }
+
+    static func settingStickStart(_ layout: ControllerLayout, percent: Int) -> ControllerLayout {
+        var next = layout
+        next.enterRadius = clamped(percent)
+        next.exitRadius = min(next.exitRadius, next.enterRadius)
+        return next
+    }
+    static func settingStickRelease(_ layout: ControllerLayout, percent: Int) -> ControllerLayout {
+        var next = layout
+        next.exitRadius = min(clamped(percent), next.enterRadius)
+        return next
+    }
+    static func settingTriggerThreshold(_ layout: ControllerLayout, percent: Int) -> ControllerLayout {
+        var next = layout
+        next.triggerThreshold = clamped(percent)
+        return next
+    }
+    static func settingSectorHysteresis(_ layout: ControllerLayout, degrees: Int) -> ControllerLayout {
+        var next = layout
+        next.sectorHysteresisDegrees = Double(min(45, max(0, degrees)))
+        return next
+    }
+    /// Output range of a continuous control in MIDI steps; low above high inverts.
+    static func settingRange(_ program: SpatialValueProgram, low: Int? = nil, high: Int? = nil) -> SpatialValueProgram {
+        guard case let .continuous(minimum, maximum, degrees, curve) = program else { return program }
+        let lowValue = low.map { Double(min(127, max(0, $0))) / 127 } ?? minimum
+        let highValue = high.map { Double(min(127, max(0, $0))) / 127 } ?? maximum
+        guard lowValue != highValue else { return program }
+        return .continuous(minimum: lowValue, maximum: highValue, directionDegrees: degrees, curve: curve)
+    }
+}
+
+/// Dead zones of the selected element's kind (shared by both sticks or both triggers).
+struct ControllerFeelEditor: View {
+    @ObservedObject var instrument: SpatialInstrumentRuntimeModel
+    let element: ControllerElement
+
+    var body: some View {
+        let layout = instrument.document.controller
+        VStack(alignment: .leading, spacing: 2) {
+            switch element.kind {
+            case .stick:
+                Stepper("Starts at \(ControllerFeelEditing.percent(layout.enterRadius)) %", value: Binding(
+                    get: { ControllerFeelEditing.percent(layout.enterRadius) },
+                    set: { apply(ControllerFeelEditing.settingStickStart(layout, percent: $0)) }), in: ControllerFeelEditing.percentRange, step: 5)
+                    .help("How far a stick must leave the middle before it plays")
+                Stepper("Releases below \(ControllerFeelEditing.percent(layout.exitRadius)) %", value: Binding(
+                    get: { ControllerFeelEditing.percent(layout.exitRadius) },
+                    set: { apply(ControllerFeelEditing.settingStickRelease(layout, percent: $0)) }), in: ControllerFeelEditing.percentRange, step: 5)
+                    .help("Below this the stick stops playing; lower than the start, so it does not flicker")
+                Stepper("Sector margin \(Int(layout.sectorHysteresisDegrees))°", value: Binding(
+                    get: { Int(layout.sectorHysteresisDegrees) },
+                    set: { apply(ControllerFeelEditing.settingSectorHysteresis(layout, degrees: $0)) }), in: 0...45)
+                    .help("How far past a sector border the stick must move before the next sector plays")
+                Text("Applies to both sticks").font(.caption2).foregroundColor(.secondary)
+            case .trigger:
+                Stepper("Plays from \(ControllerFeelEditing.percent(layout.triggerThreshold)) %", value: Binding(
+                    get: { ControllerFeelEditing.percent(layout.triggerThreshold) },
+                    set: { apply(ControllerFeelEditing.settingTriggerThreshold(layout, percent: $0)) }), in: ControllerFeelEditing.percentRange, step: 5)
+                    .help("How far a trigger must be pulled before it plays")
+                Text("Applies to both triggers").font(.caption2).foregroundColor(.secondary)
+            case .button, .surface:
+                EmptyView()
+            }
+        }
+        .font(.caption)
+        .accessibilityIdentifier("controller.feel")
+    }
+
+    private func apply(_ layout: ControllerLayout) {
+        guard layout != instrument.document.controller else { return }
+        instrument.setControllerLayout(layout, name: "Controller feel")
+    }
+}
+
 extension SpatialRoutingTarget {
     var isNoteTarget: Bool {
         switch self {
@@ -125,6 +208,9 @@ struct ControllerAssignmentInspector: View {
                             .buttonStyle(.borderless).help("Add: \(kind.title)")
                     }
                 }
+            }
+            if element.kind == .stick || element.kind == .trigger {
+                ControllerFeelEditor(instrument: instrument, element: element)
             }
             if assignments.isEmpty {
                 Text("No assignment · add one with the symbols above").font(.caption).foregroundColor(.secondary)
@@ -273,7 +359,13 @@ private struct ControllerAssignmentRow: View {
         case let .continuous(minimum, maximum, degrees, curve):
             HStack {
                 ccStepper
-                Text("\(Int(minimum * 127))…\(Int(maximum * 127))").font(.caption).foregroundColor(.secondary)
+                Stepper("\(Int((minimum * 127).rounded()))", value: Binding(get: { Int((minimum * 127).rounded()) }, set: { next in
+                    change { $0.routing.program = ControllerFeelEditing.settingRange($0.routing.program, low: next) } }), in: 0...127)
+                    .help("Value at rest")
+                Text("…").foregroundColor(.secondary)
+                Stepper("\(Int((maximum * 127).rounded()))", value: Binding(get: { Int((maximum * 127).rounded()) }, set: { next in
+                    change { $0.routing.program = ControllerFeelEditing.settingRange($0.routing.program, high: next) } }), in: 0...127)
+                    .help("Value at full travel")
                 Button { change { $0.routing.program = .continuous(minimum: maximum, maximum: minimum, directionDegrees: degrees, curve: curve) } } label: {
                     Image(systemName: "arrow.left.arrow.right")
                 }.buttonStyle(.borderless).help("Invert the range")

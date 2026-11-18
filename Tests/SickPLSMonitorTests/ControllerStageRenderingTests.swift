@@ -57,6 +57,7 @@ import PlanariumRuntime
         for (width, height) in [(900, 460), (380, 300)] {
             try render(view(editable: false), width: width, height: height, name: "played-\(width).png")
             try render(view(editable: true, mouse: false, selected: .rightStick), width: width, height: height + 260, name: "inspector-\(width).png")
+            try render(view(editable: true, mouse: false, selected: .r2), width: width, height: height + 260, name: "inspector-trigger-\(width).png")
         }
         stage.releaseSimulation()
         XCTAssertEqual(stage.simulated, .neutral)
@@ -101,6 +102,42 @@ import PlanariumRuntime
         let button = ControllerAssignmentEditing.make(.l1, kind: .control, output: .midi(channel: 0), color: .blue)
         XCTAssertEqual(button.routing.program, .constant(1), "a button switches its controller")
         XCTAssertEqual(ControllerAssignmentEditing.noteName(60), "C4")
+    }
+
+    /// Dead-zone rules keep the layout valid at every extreme, and the edited
+    /// threshold really decides what a half-pulled trigger plays.
+    func testFeelRulesStayValidAndDecideWhatPlays() throws {
+        var layout = ControllerLayout()
+        for percent in [-50, 0, 5, 40, 90, 100, 500] {
+            layout = ControllerFeelEditing.settingStickStart(layout, percent: percent)
+            layout = ControllerFeelEditing.settingStickRelease(layout, percent: 100 - percent)
+            layout = ControllerFeelEditing.settingTriggerThreshold(layout, percent: percent)
+            layout = ControllerFeelEditing.settingSectorHysteresis(layout, degrees: percent)
+            XCTAssertNoThrow(try CompiledControllerLayout(layout, source: .controller(0), sumEndpoint: nil), "\(percent) %")
+            XCTAssertLessThanOrEqual(layout.exitRadius, layout.enterRadius)
+        }
+        let start = ControllerFeelEditing.settingStickStart(.init(enterRadius: 0.6, exitRadius: 0.5), percent: 30)
+        XCTAssertEqual(start.exitRadius, 0.3, "a lower start pulls the release down with it")
+
+        let kick = ControllerAssignment(name: "Kick", color: .orange, element: .r2,
+            routing: .init(target: .midiNote(channel: 9), program: .singleNote(note: 36, velocity: 100, transition: .retrigger)))
+        func plays(threshold percent: Int, pull: Double) throws -> Bool {
+            let edited = ControllerFeelEditing.settingTriggerThreshold(.init(assignments: [kick]), percent: percent)
+            var engine = ControllerEngine(), session = UUID()
+            _ = engine.install(try CompiledControllerLayout(edited, source: .controller(0), sumEndpoint: nil), at: 0)
+            _ = engine.apply(.connected(session: session, name: "Pad"))
+            _ = engine.apply(.state(session: session, sequence: 1, time: 0, .neutral))
+            return engine.apply(.state(session: session, sequence: 2, time: 0.1, .init(values: [.r2: pull]))).contains {
+                if case .noteOn = $0 { return true }; return false
+            }
+        }
+        XCTAssertTrue(try plays(threshold: 20, pull: 0.3))
+        XCTAssertFalse(try plays(threshold: 50, pull: 0.3), "the raised threshold keeps a half pull silent")
+
+        let range = ControllerFeelEditing.settingRange(.continuous(minimum: 0, maximum: 1, directionDegrees: 0, curve: .linear), low: 20, high: 100)
+        XCTAssertEqual(range, .continuous(minimum: 20.0 / 127, maximum: 100.0 / 127, directionDegrees: 0, curve: .linear))
+        let flat = ControllerFeelEditing.settingRange(range, high: 20)
+        XCTAssertEqual(flat, range, "equal ends are refused; the range keeps moving")
     }
 
     private func render<Content: View>(_ view: Content, width: Int, height: Int, name: String) throws {

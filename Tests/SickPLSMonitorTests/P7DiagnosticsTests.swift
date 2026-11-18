@@ -23,6 +23,23 @@ import SickPLSCore
         XCTAssertEqual(end.runtime.panicTimings.count, 2)
         XCTAssertTrue(window.lines.contains { $0.hasPrefix("Panic → router return: n 1 ") })
     }
+    func testWindowSummarisesControllerReportsWithP95AndInterval() async throws {
+        let fixture = try MonitorRootFixture()
+        let runtime = fixture.root.runtime
+        let session = UUID()
+        runtime.controller(.connected(session: session, name: "DualSense"))
+        let begin = DiagnosticSnapshot.read(input: fixture.root.input, runtime: runtime, host: fixture.root.audio, midi: fixture.root.midi)
+        for sequence in 1...3 {
+            runtime.controller(.state(session: session, sequence: UInt64(sequence), time: runtime.diagnosticTime, .neutral))
+        }
+        await withCheckedContinuation { continuation in runtime.acknowledge { continuation.resume() } }
+        let end = DiagnosticSnapshot.read(input: fixture.root.input, runtime: runtime, host: fixture.root.audio, midi: fixture.root.midi)
+        let lines = DiagnosticMeasurementWindow(begin: begin, end: end, interrupted: false).lines
+        XCTAssertTrue(lines.contains { $0.hasPrefix("Controller report → router return (whole window): n 3 · p50 ") && $0.contains(" p95 ") }, lines.joined(separator: "\n"))
+        XCTAssertTrue(lines.contains { $0.hasPrefix("Controller report interval (whole window): n 2 ") })
+        XCTAssertTrue(lines.contains { $0 == "Controller reports processed / refused: 3 / 0" })
+        XCTAssertTrue(lines.contains { $0.hasPrefix("Controller report rate (processed): ") })
+    }
     func testMeasurementWindowCopyOnlyAfterEndAndHideInterrupts() async throws {
         let fixture = try MonitorRootFixture()
         let reader = DiagnosticsReader()

@@ -61,8 +61,12 @@ final class PresetSummaryTests: XCTestCase {
     }
     func testFactoryV6WithoutSummaryIsCanonicalMigrationOfFrozenFactoryPlusApprovedDefaults() throws {
         let library = FactoryPresetLibrary.standard
-        XCTAssertEqual(library.names.count, 32)
-        for name in library.names {
+        // Presets added after the V5 freeze have no frozen fixture; their own
+        // tests pin them (ControllerFactoryPresetTests builds them byte-identically).
+        let afterFreeze: Set = [FactoryPresetDocument.controllerFirstNotesName]
+        XCTAssertEqual(library.names.count, 33)
+        XCTAssertEqual(library.names.filter { !afterFreeze.contains($0) }.count, 32)
+        for name in library.names where !afterFreeze.contains(name) {
             var preset = try JSONDecoder().decode(InstrumentPresetV6.self, from: XCTUnwrap(library.data(named: name)))
             preset.summary = ""
             let bytes = try PresetV6Codec.encode(preset)

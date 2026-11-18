@@ -202,9 +202,16 @@ public final class PerformanceRuntime: @unchecked Sendable {
         // until released; Panic and Disconnect are never queued behind more.
         switch command {
         case .controller(.state), .controllerSimulation:
-            if controllerOverloaded { overflows &+= 1; ingressLock.unlock(); return }
+            let device: Bool
+            if case .controller = command { device = true } else { device = false }
+            if controllerOverloaded {
+                overflows &+= 1
+                if device { timings.recordRefusedControllerReport() }
+                ingressLock.unlock(); return
+            }
             if queuedControllerReports >= Self.controllerBacklogLimit {
                 controllerOverloaded = true; overflows &+= 1
+                if device { timings.recordRefusedControllerReport() }
                 commands.append(.controllerBacklog)
                 startDrainLocked()
                 ingressLock.unlock()
@@ -346,7 +353,11 @@ public final class PerformanceRuntime: @unchecked Sendable {
             apply(.stop, scannerOnly: true) // RELEASE: backlog
         case .controller(let event):
             guard !sleeping || !Self.isMusicalReport(event) else { return }
+            let began = clock.now
             applyController(controller.apply(event))
+            if case let .state(session, _, received, _) = event {
+                timings.recordControllerReport(session: session, received: received, began: began, completed: clock.now)
+            }
         case .controllerSimulation(let simulated):
             guard !sleeping else { return }
             applyController(controller.simulate(simulated, at: clock.now))

@@ -16,7 +16,9 @@ final class DetectionStagePresetRegressionTests: XCTestCase {
                           root.appendingPathComponent("Tests/PlanariumPresetsTests/Fixtures/Owner")] {
             let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
                 .filter { $0.pathExtension == "json" }.sorted { $0.lastPathComponent < $1.lastPathComponent }
-            for file in files {
+            // The frozen hashes cover the files that existed at the freeze;
+            // later factory presets are pinned by their own tests.
+            for file in files where file.lastPathComponent != "\(FactoryPresetDocument.controllerFirstNotesName).sickpreset.json" {
                 let data = try Data(contentsOf: file)
                 let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
                 let version = try XCTUnwrap(object["formatVersion"] as? Int)

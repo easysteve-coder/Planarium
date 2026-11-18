@@ -31,9 +31,12 @@ MIDI-Geräten. Bedienungsanleitung: [`docs/Anleitung.md`](docs/Anleitung.md).*
 - **Defined release paths:** every loss, stop, preset change and quit releases
   sounding notes; PANIC releases everything.
 
-In development: game controllers (PS5 DualSense first) as a second playing
-source next to the scanner, with their own assignments and a simulated
-controller in the view.
+- **Game controller** (PS5 DualSense first) as a second playing source next to
+  the scanner: assignments per button, trigger, stick and touchpad, ready-made
+  drums/melody/chords setups, lightbar, and an on-screen controller playable with
+  the mouse. Factory preset *Factory 02 Controller First Notes* plays at once on
+  Apple's built-in instrument. Tested with fakes and the on-screen controller; a
+  hardware run is pending.
 
 ## Requirements
 
@@ -58,12 +61,16 @@ count.
 | Area | Modules |
 |---|---|
 | Scanner protocol and transport | `SickPLSCore`, `SickPLSMacTransport`, `SickPLSCommissioning`, `SickPLSActiveControl`, `PLSDeviceValues` |
+| Musical core (no scanner, no audio) | `PlanariumMusicCore`, `PlanariumControllerCore` |
 | Instrument model and playing rules | `PlanariumDomain`, `PlanariumRuntime`, `PlanariumPresets` |
-| Sound | `PlanariumAudio` (Audio Unit host), `PlanariumMIDI` (CoreMIDI, clock) |
+| Game controller input | `PlanariumControllerInput` (Apple GameController) |
+| Sound | `PlanariumSoundCore` (router, ownership), `PlanariumAudio` (Audio Unit host), `PlanariumMIDI` (CoreMIDI, clock) |
 | App | `SickPLSMonitor` (SwiftUI/AppKit), `SickPLSMonitorKit` |
 | Simulation | `SickPLSSimulation*`, `iOS/PlanariumSim` |
 
-Design contracts, risks and evidence: [`ROADMAP.md`](ROADMAP.md). Changes:
+Architecture overview: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). How to
+contribute: [`CONTRIBUTING.md`](CONTRIBUTING.md). Design contracts, risks and
+evidence: [`ROADMAP.md`](ROADMAP.md). Changes:
 [`CHANGELOG.md`](CHANGELOG.md). Comments and docs are mostly in German.
 
 ## Notes

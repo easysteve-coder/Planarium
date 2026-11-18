@@ -66,6 +66,72 @@ final class SampleNoteRingTests: XCTestCase {
             }
         }
     }
+    /// FoF finding (Shortcircuit XT, +19 dBFS): after a render pause, overdue
+    /// Ons must not pile up on offset 0. An On more than 4096 frames late is
+    /// dropped together with its now-meaningless Off; a slightly late On still
+    /// plays, and the Off of a sounding note always goes out.
+    func testRenderPauseDropsMissedOnsButNeverAnOff() throws {
+        let ring = try XCTUnwrap(planarium_note_ring_create())
+        defer { planarium_note_ring_destroy(ring) }
+        let generation = planarium_note_ring_generation(ring)
+        func push(_ sample: Double, _ status: UInt8, _ note: UInt8) {
+            XCTAssertEqual(planarium_note_ring_push(ring, .init(sample: sample, generation: generation, status: status, note: note, velocity: status == 0x90 ? 100 : 0)), 1)
+        }
+        var sent: [[UInt8]] = []
+        func render(_ sample: Double) {
+            planarium_note_ring_render(ring, sample, 256) { _, _, count, bytes in sent.append(Array(UnsafeBufferPointer(start: bytes, count: count))) }
+        }
+        push(0, 0x90, 60); render(0)
+        XCTAssertEqual(sent, [[0x90, 60, 100]])
+        sent.removeAll()
+        // Render stops; meanwhile Q plans more: a missed On/Off pair, the Off of
+        // the sounding 60, and an On that is only a little late.
+        push(1_000, 0x90, 62); push(1_200, 0x80, 62)
+        push(1_500, 0x80, 60)
+        push(20_000 - 1_000, 0x90, 64)
+        render(20_000)
+        XCTAssertEqual(sent, [[0x80, 60, 0], [0x90, 64, 100]], "no burst of missed Ons, the Off of 60 goes out")
+        XCTAssertEqual(planarium_note_ring_stale_ons(ring), 1)
+    }
+
+    /// Codex review probes, kept: the stale rule works per voice, spares the
+    /// immediate sentinel, and its boundary is exactly 4096 frames.
+    func testStaleRuleRespectsVoicesImmediateNotesAndItsExactBoundary() throws {
+        let ring = try XCTUnwrap(planarium_note_ring_create())
+        defer { planarium_note_ring_destroy(ring) }
+        let g = planarium_note_ring_generation(ring)
+        func push(_ sample: Double, _ status: UInt8, _ note: UInt8, voice: UInt64, velocity: UInt8 = 100) {
+            XCTAssertEqual(planarium_note_ring_push(ring, PlanariumSampleNote(sample: sample, generation: g, status: status, note: note,
+                velocity: status & 0xf0 == 0x90 ? velocity : 0, voice: voice)), 1)
+        }
+        var sent: [[UInt8]] = []
+        func render(_ sample: Double) {
+            planarium_note_ring_render(ring, sample, 256) { _, _, count, bytes in sent.append(Array(UnsafeBufferPointer(start: bytes, count: count))) }
+        }
+        // 1 · sounding voice 1, overdue retrigger voice 2 dropped, its Off inert, voice 1's Off goes out.
+        push(0, 0x90, 60, voice: 1); render(0)
+        push(1_000, 0x90, 60, voice: 2); push(1_100, 0x80, 60, voice: 2); push(1_200, 0x80, 60, voice: 1)
+        sent.removeAll(); render(50_000)
+        XCTAssertEqual(sent, [[0x80, 60, 0]], "only the real Off of voice 1")
+        // 2 · dropped voice 3, fresh voice 4: the old Off of 3 does not cut 4; Velocity-0 On ends 4.
+        push(60_000, 0x90, 62, voice: 3); push(100_000, 0x90, 62, voice: 4); push(100_010, 0x80, 62, voice: 3)
+        sent.removeAll(); render(100_000)
+        XCTAssertEqual(sent, [[0x90, 62, 100]])
+        push(100_300, 0x90, 62, voice: 4, velocity: 0)
+        sent.removeAll(); render(100_256)
+        XCTAssertEqual(sent, [[0x90, 62, 0]], "a Velocity-0 On of the sounding voice ends it")
+        // 3 · the immediate sentinel survives any jump.
+        push(-Double.greatestFiniteMagnitude, 0x90, 64, voice: 5)
+        sent.removeAll(); render(1_000_000)
+        XCTAssertEqual(sent, [[0x90, 64, 100]])
+        // 4 · exactly 4096 frames late still plays, 4097 is dropped.
+        let before = planarium_note_ring_stale_ons(ring)
+        push(2_000_000 - 4_096, 0x90, 65, voice: 6); push(2_000_000 - 4_097, 0x90, 66, voice: 7)
+        sent.removeAll(); render(2_000_000)
+        XCTAssertEqual(sent, [[0x90, 65, 100]])
+        XCTAssertEqual(planarium_note_ring_stale_ons(ring), before + 1)
+    }
+
     func testGenerationCancelsPendingOnsAndSynchronouslyReleasesFreshRenderOns() throws {
         for reason in ["hand away", "PANIC", "stop", "scene", "preset", "chain", "bypass", "sleep", "terminate", "engine stop"] {
             let ring = try XCTUnwrap(planarium_note_ring_create())

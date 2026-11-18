@@ -26,7 +26,8 @@ final class PresetV5Tests: XCTestCase {
     /// start setting and must continue to reencode byte-for-byte.
     func testEveryVersionedFactoryResourceReencodesWithApprovedVirtualMMKDefaults() throws {
         let library = FactoryPresetLibrary.standard
-        XCTAssertEqual(library.names.count, 32)
+        // 32 frozen factory files plus the controller preset added on 18.11.2026.
+        XCTAssertEqual(library.names.count, 33)
         for name in library.names {
             let versionedBytes = try XCTUnwrap(library.data(named: name))
             let reading = try PresetDocumentReader.read(versionedBytes).get()
@@ -163,7 +164,8 @@ final class PresetV5Tests: XCTestCase {
     }
     func testEveryGeneratedFactoryAndHarmonyFileIsV5AndRoundTripsLosslessly() throws {
         let library = FactoryPresetLibrary.standard
-        XCTAssertEqual(library.names.count, 32)
+        // 32 frozen factory files plus the controller preset added on 18.11.2026.
+        XCTAssertEqual(library.names.count, 33)
         for name in library.names {
             let data = try XCTUnwrap(library.data(named: name))
             let reading = try PresetDocumentReader.read(data).get()

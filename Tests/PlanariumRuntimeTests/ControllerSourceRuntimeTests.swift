@@ -144,6 +144,7 @@ final class ControllerSourceRuntimeTests: RuntimeTestCase {
         XCTAssertEqual(ons, 1 + limit / 2, "every accepted press sounds; nothing is thinned")
         XCTAssertEqual(midi.duplicateOns, 0)
         XCTAssertTrue(midi.sounding.isEmpty, "the overload release leaves nothing sounding")
+        XCTAssertEqual(c.runtime.diagnostics.controllerAggregate.refused, 40, "refused reports are counted, not hidden")
         c.runtime.controller(.state(session: pad, sequence: 10_000, time: clock.now, .init(pressed: [.cross])))
         flush(c.runtime)
         XCTAssertTrue(midi.sounding.isEmpty, "held through the overload: silent until released")
@@ -180,6 +181,60 @@ final class ControllerSourceRuntimeTests: RuntimeTestCase {
         XCTAssertFalse(after.contains([0x90, 40, 90]), "the refused pad never plays the target again")
         XCTAssertFalse(au.sounding.contains(40))
         XCTAssertEqual(au.duplicateOns, 0)
+    }
+
+    /// Device reports are timed from their callback time to the router's
+    /// return on Q; the on-screen simulation is no device report and not timed.
+    func testDeviceReportsAreTimedFromCallbackToRouterReturn() throws {
+        let midi = FakeBoundary(), clock = FakeClock()
+        let c = composition(clock: clock, midi: midi)
+        let scanner = try compiled(notes: false)
+        try start(c, instrument: scanner)
+        c.runtime.installController(try layout([padNote(channel: 2, note: 50)], scanner: scanner))
+        c.runtime.controller(.connected(session: pad, name: "DualSense"))
+        c.runtime.controller(.state(session: pad, sequence: 1, time: clock.now - 0.004, .neutral))
+        c.runtime.controller(.state(session: pad, sequence: 2, time: clock.now - 0.002, .init(pressed: [.cross])))
+        c.runtime.simulateController(.init(pressed: [.circle]))
+        flush(c.runtime)
+        let timings = c.runtime.diagnostics.controllerTimings
+        XCTAssertEqual(c.runtime.diagnostics.controllerTimingCount, 2, "two device reports, no simulation")
+        XCTAssertEqual(timings.map(\.ordinal), [1, 2])
+        XCTAssertEqual(timings[0].totalMilliseconds, 4, accuracy: 1e-6)
+        XCTAssertEqual(timings[1].queueMilliseconds, 2, accuracy: 1e-6)
+        XCTAssertEqual(midi.sounding, [2 * 128 + 50], "measuring does not change what plays")
+    }
+
+    /// Codex A/B: a 60 s window with 3,600 reports overflows the 2,048 sample
+    /// ring; the aggregate still counts every report, keeps the slow start in
+    /// p95 and the early gap as the maximum interval.
+    func testWindowAggregateCoversEveryReportBeyondTheSampleRing() throws {
+        let clock = FakeClock()
+        let c = composition(clock: clock, midi: FakeBoundary())
+        try start(c, instrument: try compiled(notes: false))
+        c.runtime.controller(.connected(session: pad, name: "DualSense"))
+        flush(c.runtime)
+        let begin = c.runtime.diagnostics.controllerAggregate
+        var received = clock.now
+        for index in 0..<3_600 {
+            // First 300 reports arrive 20 ms before Q handles them; an early 500 ms gap.
+            let late = index < 300 ? 0.020 : 0
+            received += index == 10 ? 0.5 : 1.0 / 60
+            clock.advance(received + late)
+            c.runtime.controller(.state(session: pad, sequence: UInt64(index + 1), time: received, .neutral))
+            flush(c.runtime)
+        }
+        flush(c.runtime)
+        let window = c.runtime.diagnostics.controllerAggregate.since(begin)
+        XCTAssertEqual(window.processed, 3_600, "every report, not only the ring's 2,048")
+        XCTAssertEqual(c.runtime.diagnostics.controllerTimings.count, 2_048)
+        XCTAssertEqual(window.refused, 0)
+        let latency = try XCTUnwrap(ControllerReportAggregate.quantiles(window.latency, width: ControllerReportAggregate.latencyBinMilliseconds))
+        XCTAssertGreaterThanOrEqual(latency.p95, 20, "300 of 3,600 slow reports (8 %) stay in p95")
+        XCTAssertEqual(latency.count, 3_600)
+        let interval = try XCTUnwrap(ControllerReportAggregate.quantiles(window.interval, width: ControllerReportAggregate.intervalBinMilliseconds))
+        XCTAssertGreaterThanOrEqual(interval.max, 500, "the early gap is the maximum")
+        XCTAssertEqual(interval.p50, 17, "16.7 ms lies in the 16–17 ms bin")
+        XCTAssertFalse(interval.openEnded)
     }
 
     func testScannerOwnedNotesAreRefusedToThePad() throws {

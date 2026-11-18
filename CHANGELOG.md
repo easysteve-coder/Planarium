@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+**VORBEREITUNG-GERÄTETEST (18.11.)**
+
+- Diagnose-Messfenster misst den Controller: Meldungen pro Sekunde, Abstände (Aussetzer) und die
+  Zeit vom Eintreffen einer Meldung bis zur Ausgabe (p50/p95/p99/max). Alle Zeitzeilen nennen jetzt
+  auch p95.
+- Totzonen einstellbar: Im Controller-Inspector stellen Sticks „Starts at“, „Releases below“ und
+  den Sektorrand ein, Trigger „Plays from“; Regler zeigen ihren Wertebereich als zwei Stepper.
+- Neues Werkpreset „Factory 02 Controller First Notes“ mit dem eingebauten Apple-Instrument:
+  Schlagzeug auf ✕ ○ □ △ R1, Melodie auf dem rechten Stick, Filter auf R2, Sustain auf L1,
+  Akkorde I–V–vi–IV auf dem Steuerkreuz.
+- Nach einer Renderpause spielen verpasste geplante Töne nicht mehr gebündelt auf einmal
+  (FoF-Befund: +19 dB mit Shortcircuit XT); Note-Offs gehen immer hinaus.
+
 **Öffentlich und GPLv3 (18.11.)**
 
 - Planarium steht öffentlich auf GitHub (`easysteve-coder/Planarium`), Lizenz GNU GPL v3 wie
