@@ -1,0 +1,2 @@
+import PlanariumApplication
+typealias SpatialInstrumentRuntimeModel = PlanariumApplication.SpatialInstrumentRuntimeModel

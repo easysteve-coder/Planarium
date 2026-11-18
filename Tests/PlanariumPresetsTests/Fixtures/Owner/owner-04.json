@@ -1,0 +1,306 @@
+{
+  "assignment": {
+    "gate": "30000000-0000-0000-0000-000000000003",
+    "pitch": "30000000-0000-0000-0000-000000000001",
+    "volume": "30000000-0000-0000-0000-000000000002"
+  },
+  "audioUnits": {
+    "entries": []
+  },
+  "delay": {
+    "feedbackPercent": 25,
+    "isEnabled": false,
+    "sendLevel": 0.5,
+    "timeSeconds": 0.25
+  },
+  "formatVersion": 3,
+  "gate": {
+    "polarity": "belowThreshold",
+    "threshold": 1
+  },
+  "instrumentChannel": {
+    "id": "primary",
+    "pan": 0
+  },
+  "layers": [
+    {
+      "mixRule": "firstActive",
+      "role": "pitch",
+      "targetKind": "discrete",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000001"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "volume",
+      "targetKind": "continuous",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000002"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "filter",
+      "targetKind": "continuous",
+      "zoneIDs": []
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "gate",
+      "targetKind": "gate",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000003"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "effectSend",
+      "targetKind": "continuous",
+      "zoneIDs": []
+    }
+  ],
+  "mapping": {
+    "effectSendPolarity": "normal",
+    "filterHighestHz": 12000,
+    "filterLowestHz": 200,
+    "filterPolarity": "normal",
+    "maximumAmplitude": 0.64,
+    "pitchHighestHz": 329.63,
+    "pitchLowestHz": 41.2,
+    "pitchPolarity": "normal",
+    "volumeCurve": "linear",
+    "volumePolarity": "inverted"
+  },
+  "masterGain": 0.65,
+  "midi": {
+    "bendRangeSemitones": 2,
+    "channel": 1,
+    "effectSendController": 91,
+    "filterController": 74,
+    "pitchInverted": false,
+    "rootNote": 33,
+    "spanSemitones": 60,
+    "volumeController": 7
+  },
+  "name": "Owner Fixture 04",
+  "prediction": {
+    "alpha": 0.5,
+    "beta": 0.1,
+    "outlierThreshold": 0.5,
+    "predictionHorizonSeconds": 0.06,
+    "staleTimeoutSeconds": 0.35
+  },
+  "reverb": {
+    "character": "smallRoom",
+    "isEnabled": true,
+    "sendLevel": 0.12
+  },
+  "spatialWorkspace": {
+    "coordinateMode": "polar",
+    "grid": {
+      "cellSizeMeters": 0.25
+    },
+    "layers": [
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0,
+          "green": 0.55,
+          "red": 1
+        },
+        "id": "5A5A49CA-D7AB-4F3B-97CA-9C029A3F5CAB",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 15,
+            "ring": 4
+          },
+          {
+            "angularIndex": 9,
+            "ring": 1
+          },
+          {
+            "angularIndex": 5,
+            "ring": 1
+          },
+          {
+            "angularIndex": 4,
+            "ring": 0
+          },
+          {
+            "angularIndex": 6,
+            "ring": 2
+          },
+          {
+            "angularIndex": 8,
+            "ring": 2
+          },
+          {
+            "angularIndex": 7,
+            "ring": 1
+          },
+          {
+            "angularIndex": 8,
+            "ring": 1
+          },
+          {
+            "angularIndex": 15,
+            "ring": 3
+          },
+          {
+            "angularIndex": 7,
+            "ring": 2
+          },
+          {
+            "angularIndex": 15,
+            "ring": 5
+          },
+          {
+            "angularIndex": 16,
+            "ring": 3
+          },
+          {
+            "angularIndex": 2,
+            "ring": 0
+          },
+          {
+            "angularIndex": 17,
+            "ring": 3
+          },
+          {
+            "angularIndex": 16,
+            "ring": 6
+          },
+          {
+            "angularIndex": 3,
+            "ring": 0
+          },
+          {
+            "angularIndex": 5,
+            "ring": 0
+          },
+          {
+            "angularIndex": 14,
+            "ring": 4
+          },
+          {
+            "angularIndex": 14,
+            "ring": 3
+          },
+          {
+            "angularIndex": 6,
+            "ring": 1
+          },
+          {
+            "angularIndex": 10,
+            "ring": 1
+          },
+          {
+            "angularIndex": 16,
+            "ring": 5
+          },
+          {
+            "angularIndex": 15,
+            "ring": 6
+          },
+          {
+            "angularIndex": 16,
+            "ring": 4
+          }
+        ],
+        "routings": [
+          {
+            "id": "C617D3F3-3996-4A35-89F1-92049ECB1A32",
+            "program": {
+              "scale": {
+                "ascending": true,
+                "directionDegrees": 90,
+                "highestMIDINote": 84,
+                "lowestMIDINote": 48,
+                "rootMIDINote": 60,
+                "scale": "major",
+                "transition": {
+                  "legato": {}
+                }
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "selectedLayerID": "5A5A49CA-D7AB-4F3B-97CA-9C029A3F5CAB"
+  },
+  "timbre": {
+    "attackSeconds": 0.04,
+    "decaySeconds": 0.12,
+    "filterResonance": 2.2,
+    "morph": 0.45,
+    "releaseSeconds": 0.25,
+    "sustainLevel": 0.9
+  },
+  "viewport": {
+    "centerX": 0,
+    "centerY": -0.009,
+    "halfExtent": 0.018
+  },
+  "zones": [
+    {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "pitch",
+      "shape": {
+        "kind": "fan",
+        "range": 7,
+        "values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "volume",
+      "shape": {
+        "kind": "strip"
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "gate",
+      "shape": {
+        "kind": "strip"
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    }
+  ]
+}

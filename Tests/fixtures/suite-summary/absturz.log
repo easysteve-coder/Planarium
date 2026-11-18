@@ -1,0 +1,5 @@
+Test Suite 'Beispiel' started at 2026-01-01 00:00:00.000
+Test Case '-[Beispiel testEins]' started.
+Test Case '-[Beispiel testEins]' passed (0.001 seconds).
+Test Case '-[Beispiel testZwei]' started.
+error: Process '/usr/bin/xctest -XCTest Beispiel/testZwei Beispiel.xctest' exited with unexpected signal code 5

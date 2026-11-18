@@ -1,0 +1,7 @@
+Test Suite 'Beispiel' started at 2026-01-01 00:00:00.000
+Test Case '-[Beispiel testEins]' started.
+Test Case '-[Beispiel testEins]' passed (0.001 seconds).
+Test Case '-[Beispiel testZwei]' started.
+Beispiel.swift:42: error: -[Beispiel testZwei] : XCTAssertEqual failed: ("1") is not equal to ("2")
+Test Case '-[Beispiel testZwei]' failed (0.002 seconds).
+Test Suite 'Beispiel' failed at 2026-01-01 00:00:01.000

@@ -1,0 +1,24 @@
+# Typ	SwiftPM-Filter	Bereichsausloeser (durch | getrennt)	Grund
+# Diese Datei ist die einzige Liste fuer die Ausnahmen der Suite-Profile.
+# "long" bleibt in --full enthalten und wird in --quick nur bei einem
+# beruehrten Bereich ausgefuehrt. "timing" wird in beiden Profilen einzeln
+# nach dem parallelen Buendel ausgefuehrt, damit seine Wandzeit aussagekraeftig
+# bleibt.
+long	FactoryPresetLibraryTests/testTempoDefaultKeepsEveryFactoryPresetByteIdenticalAndCustomTempoRoundTrips	Sources/PlanariumPresets/**|Sources/PlanariumDomain/**|Sources/PLSDeviceValues/**|Sources/SickPLSCore/**|Sources/SickPLSControlCore/**|Tests/PlanariumPresetsTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	bytegleiche Fabrik-Preset-Migration
+long	FactoryPresetLibraryTests/testToggleGuardFactoryDefaultsAndBackwardCompatiblePresetRoundTrip	Sources/PlanariumPresets/**|Sources/PlanariumDomain/**|Sources/PLSDeviceValues/**|Sources/SickPLSCore/**|Sources/SickPLSControlCore/**|Tests/PlanariumPresetsTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	Fabrik-Preset-Rueckwaertskompatibilitaet
+long	PresetSummaryTests/testFactoryV6WithoutSummaryIsCanonicalMigrationOfFrozenFactoryPlusApprovedDefaults	Sources/PlanariumPresets/**|Sources/PlanariumDomain/**|Sources/PLSDeviceValues/**|Sources/SickPLSCore/**|Sources/SickPLSControlCore/**|Tests/PlanariumPresetsTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	kanonische Fabrik-Preset-Zusammenfassung
+long	IndexedSmoothingEquivalenceTests/testRecordedSyntheticSequencesAreBitEqualToLegacyHistorySearch	Sources/PlanariumDomain/**|Sources/PLSDeviceValues/**|Sources/SickPLSCore/**|Tests/PlanariumDomainTests/**|Package.swift	bitgleicher Glattheitsvergleich gegen den historischen Suchweg
+long	DetectionStageRegressionTests/testRandpunkteRecordingReplayAndMusicAreBitIdentical	Sources/PlanariumDomain/**|Sources/PLSDeviceValues/**|Sources/SickPLSCore/**|Tests/PlanariumDomainTests/**|Package.swift	Randpunkte-Aufnahme, Replay und Musik bitgleich
+long	ChannelMixerRenderingTests/testMixerZeroOneTwoEightWideNarrowOutputMissingAndPerformanceThreeOffline	Sources/**|Tests/SickPLSMonitorTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	Offline-Rendering aller Mischpult-Zustaende
+long	InspectorTrackingTests/testDetectionOverlayEvidenceRendersEveryControlWideAndNarrow	Sources/**|Tests/SickPLSMonitorTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	Offline-Rendering aller Detektionsregler
+long	InspectorTrackingTests/testForcedDetectionProbeLeavesProductionMIDIAndAUAndCellsUnchanged	Sources/**|Tests/SickPLSMonitorTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	Detektions-Overlay ohne Produktionsnebenwirkung
+long	WorkspaceRenderingTests/testRealWorkspaceAllVisibilityStatesWithMMK90WideAndNarrow	Sources/**|Tests/SickPLSMonitorTests/**|Tests/LegacyPresetTestSupport/**|Package.swift	Offline-Rendering der Arbeitsflaechen-Sichtbarkeiten
+timing	ProductionLatencyTests	Sources/PlanariumApplication/**|Tests/PlanariumApplicationTests/ProductionLatencyTests.swift	Produktionspfad-Latenz
+timing	SpatialInstrumentWorkspaceTests/testPolarMovePreviewWorkForTwoHundredCellsStaysBelowEightMilliseconds	Sources/PlanariumDomain/**|Tests/PlanariumDomainTests/SpatialInstrumentWorkspaceTests.swift	Vorschau-Arbeitsbudget fuer 200 Zellen
+timing	AcceptanceAViewBudgetTests	Sources/SickPLSMonitor/**|Tests/SickPLSMonitorTests/AcceptanceAViewBudgetTests.swift	Auswahl- und Ansichtsbudget
+timing	SelectionTempoTests/testCCProgramAndSingleNoteInspectorSwitchWorkIsBounded	Sources/SickPLSMonitor/**|Tests/SickPLSMonitorTests/AcceptanceAViewBudgetTests.swift	Inspectorwechsel CC/Programm/Einzelnote
+timing	SelectionTempoTests/testInspectorContentSwitchWorkIsBounded	Sources/SickPLSMonitor/**|Tests/SickPLSMonitorTests/AcceptanceAViewBudgetTests.swift	Inspector-Inhaltswechsel
+timing	RuntimeLoadTests	Sources/PlanariumRuntime/**|Tests/PlanariumRuntimeTests/RuntimeLoadTests.swift	Profil-/Panic-Latenz und Lastbudgets (einschliesslich 10k)
+timing	SelectionTempoTests/testNativeLayerAndCellSelectionVisibleWithinFiftyMillisecondsWithoutDocumentPublication	Sources/SickPLSMonitor/**|Tests/SickPLSMonitorTests/AcceptanceAViewBudgetTests.swift	Native Auswahl sichtbar unter 50 ms
+timing	OwnerRun1010Tests/testCaptureTwiceProgressPublishesAndSettingsSurviveEveryFactoryPreset90And361	Sources/SickPLSMonitor/**|Sources/PlanariumPresets/**|Tests/SickPLSMonitorTests/OwnerRun1010Tests.swift	Aufnahmefortschritt einen Scan voraus bei allen Fabrik-Presets
+timing	PolarCellTransformTests/testCompressionPreviewForThreeHundredCellsStaysBelowEightMilliseconds	Sources/PlanariumDomain/**|Tests/PlanariumDomainTests/PolarCellTransformTests.swift	Stauchvorschau-Arbeitsbudget fuer 300 Zellen

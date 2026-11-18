@@ -1,0 +1,14 @@
+# Swift Package Manager
+.build/
+.swiftpm/
+DerivedData/
+*.xcresult
+
+# macOS
+.DS_Store
+
+# Local test output (rendered images, measurement tables)
+.agent_handoff/
+
+# Raw scanner captures are never versioned
+captures/

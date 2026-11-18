@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "Chord Ladder",
+  "summary": "Same kit, different recipe: four distance bands, each playing a chord (A minor, F major, C major, G major) with a delay insert.",
+  "velocity": 72,
+  "channels": [
+    { "id": "pad", "name": "Pad", "instrument": "surge.init", "effects": ["apple.delay.eagle"], "levelDb": -12 }
+  ],
+  "bands": [
+    { "id": "am", "label": "Am", "fromCm": 40,  "toCm": 80,  "notes": ["A3", "C4", "E4"], "channel": "pad", "color": "#9C88C4" },
+    { "id": "f",  "label": "F",  "fromCm": 80,  "toCm": 120, "notes": ["F3", "A3", "C4"], "channel": "pad", "color": "#42A5F5" },
+    { "id": "c",  "label": "C",  "fromCm": 120, "toCm": 160, "notes": ["C4", "E4", "G4"], "channel": "pad", "color": "#4CAF50" },
+    { "id": "g",  "label": "G",  "fromCm": 160, "toCm": 200, "notes": ["G3", "B3", "D4"], "channel": "pad", "color": "#D4820A", "velocity": 90 }
+  ]
+}

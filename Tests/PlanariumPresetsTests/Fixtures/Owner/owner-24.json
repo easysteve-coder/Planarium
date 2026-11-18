@@ -1,0 +1,1106 @@
+{
+  "assignment": {
+    "gate": "30000000-0000-0000-0000-000000000003",
+    "pitch": "30000000-0000-0000-0000-000000000001",
+    "volume": "30000000-0000-0000-0000-000000000002"
+  },
+  "audioUnits": {
+    "entries": []
+  },
+  "delay": {
+    "feedbackPercent": 25,
+    "isEnabled": false,
+    "sendLevel": 0.5,
+    "timeSeconds": 0.25
+  },
+  "formatVersion": 3,
+  "gate": {
+    "polarity": "belowThreshold",
+    "threshold": 1
+  },
+  "instrumentChannel": {
+    "id": "primary",
+    "pan": 0
+  },
+  "layers": [
+    {
+      "mixRule": "firstActive",
+      "role": "pitch",
+      "targetKind": "discrete",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000001"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "volume",
+      "targetKind": "continuous",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000002"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "filter",
+      "targetKind": "continuous",
+      "zoneIDs": []
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "gate",
+      "targetKind": "gate",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000003"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "effectSend",
+      "targetKind": "continuous",
+      "zoneIDs": []
+    }
+  ],
+  "mapping": {
+    "effectSendPolarity": "normal",
+    "filterHighestHz": 12000,
+    "filterLowestHz": 200,
+    "filterPolarity": "normal",
+    "maximumAmplitude": 0.64,
+    "pitchHighestHz": 329.63,
+    "pitchLowestHz": 41.2,
+    "pitchPolarity": "normal",
+    "volumeCurve": "linear",
+    "volumePolarity": "inverted"
+  },
+  "masterGain": 0.65,
+  "midi": {
+    "bendRangeSemitones": 2,
+    "channel": 1,
+    "effectSendController": 91,
+    "filterController": 74,
+    "pitchInverted": false,
+    "rootNote": 33,
+    "spanSemitones": 60,
+    "volumeController": 7
+  },
+  "name": "Owner Fixture 24",
+  "prediction": {
+    "alpha": 0.5,
+    "beta": 0.1,
+    "outlierThreshold": 0.5,
+    "predictionHorizonSeconds": 0.06,
+    "staleTimeoutSeconds": 0.35
+  },
+  "reverb": {
+    "character": "smallRoom",
+    "isEnabled": true,
+    "sendLevel": 0.12
+  },
+  "spatialWorkspace": {
+    "coordinateMode": "polar",
+    "grid": {
+      "cellSizeMeters": 0.25
+    },
+    "layers": [
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 1.0,
+          "green": 0.55,
+          "red": 0.25
+        },
+        "id": "3F613E5A-26D6-457F-84C5-000AC03E72B7",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 4,
+            "ring": 2
+          },
+          {
+            "angularIndex": 5,
+            "ring": 2
+          },
+          {
+            "angularIndex": 6,
+            "ring": 2
+          },
+          {
+            "angularIndex": 7,
+            "ring": 2
+          },
+          {
+            "angularIndex": 8,
+            "ring": 2
+          },
+          {
+            "angularIndex": 9,
+            "ring": 2
+          },
+          {
+            "angularIndex": 10,
+            "ring": 2
+          },
+          {
+            "angularIndex": 11,
+            "ring": 2
+          },
+          {
+            "angularIndex": 8,
+            "ring": 3
+          },
+          {
+            "angularIndex": 9,
+            "ring": 3
+          },
+          {
+            "angularIndex": 10,
+            "ring": 3
+          },
+          {
+            "angularIndex": 11,
+            "ring": 3
+          },
+          {
+            "angularIndex": 12,
+            "ring": 3
+          },
+          {
+            "angularIndex": 13,
+            "ring": 3
+          },
+          {
+            "angularIndex": 14,
+            "ring": 3
+          },
+          {
+            "angularIndex": 15,
+            "ring": 3
+          },
+          {
+            "angularIndex": 16,
+            "ring": 3
+          },
+          {
+            "angularIndex": 17,
+            "ring": 3
+          },
+          {
+            "angularIndex": 18,
+            "ring": 3
+          },
+          {
+            "angularIndex": 19,
+            "ring": 3
+          },
+          {
+            "angularIndex": 20,
+            "ring": 3
+          },
+          {
+            "angularIndex": 21,
+            "ring": 3
+          },
+          {
+            "angularIndex": 22,
+            "ring": 3
+          },
+          {
+            "angularIndex": 23,
+            "ring": 3
+          }
+        ],
+        "routings": [
+          {
+            "id": "18CA6950-0AD6-4A17-8847-1D7613730B3A",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  64,
+                  67
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.1,
+          "green": 0.65,
+          "red": 1.0
+        },
+        "id": "DA16860B-3FB2-4107-8E8E-C00B08F69D32",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 8,
+            "ring": 4
+          },
+          {
+            "angularIndex": 9,
+            "ring": 4
+          },
+          {
+            "angularIndex": 10,
+            "ring": 4
+          },
+          {
+            "angularIndex": 11,
+            "ring": 4
+          },
+          {
+            "angularIndex": 12,
+            "ring": 4
+          },
+          {
+            "angularIndex": 8,
+            "ring": 5
+          },
+          {
+            "angularIndex": 9,
+            "ring": 5
+          },
+          {
+            "angularIndex": 10,
+            "ring": 5
+          },
+          {
+            "angularIndex": 11,
+            "ring": 5
+          },
+          {
+            "angularIndex": 12,
+            "ring": 5
+          }
+        ],
+        "routings": [
+          {
+            "id": "9568E3AB-AD2B-48C2-A718-B16E56104BCD",
+            "program": {
+              "chord": {
+                "notes": [
+                  64,
+                  67,
+                  71
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.1,
+          "green": 0.65,
+          "red": 1.0
+        },
+        "id": "214F3A74-F18A-4FB3-B08D-FF886C2409F3",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 13,
+            "ring": 4
+          },
+          {
+            "angularIndex": 14,
+            "ring": 4
+          },
+          {
+            "angularIndex": 15,
+            "ring": 4
+          },
+          {
+            "angularIndex": 16,
+            "ring": 4
+          },
+          {
+            "angularIndex": 17,
+            "ring": 4
+          },
+          {
+            "angularIndex": 18,
+            "ring": 4
+          },
+          {
+            "angularIndex": 13,
+            "ring": 5
+          },
+          {
+            "angularIndex": 14,
+            "ring": 5
+          },
+          {
+            "angularIndex": 15,
+            "ring": 5
+          },
+          {
+            "angularIndex": 16,
+            "ring": 5
+          },
+          {
+            "angularIndex": 17,
+            "ring": 5
+          },
+          {
+            "angularIndex": 18,
+            "ring": 5
+          }
+        ],
+        "routings": [
+          {
+            "id": "3D29A8B3-675B-4252-B7AB-4BB773B88AD6",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  63,
+                  67
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.1,
+          "green": 0.65,
+          "red": 1.0
+        },
+        "id": "43DB5DBB-0D08-451E-894A-6385EDF539E4",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 19,
+            "ring": 4
+          },
+          {
+            "angularIndex": 20,
+            "ring": 4
+          },
+          {
+            "angularIndex": 21,
+            "ring": 4
+          },
+          {
+            "angularIndex": 22,
+            "ring": 4
+          },
+          {
+            "angularIndex": 23,
+            "ring": 4
+          },
+          {
+            "angularIndex": 19,
+            "ring": 5
+          },
+          {
+            "angularIndex": 20,
+            "ring": 5
+          },
+          {
+            "angularIndex": 21,
+            "ring": 5
+          },
+          {
+            "angularIndex": 22,
+            "ring": 5
+          },
+          {
+            "angularIndex": 23,
+            "ring": 5
+          }
+        ],
+        "routings": [
+          {
+            "id": "D0D9184D-5C1B-4771-B902-52B0E3E23B26",
+            "program": {
+              "chord": {
+                "notes": [
+                  57,
+                  60,
+                  64
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "479CCD0B-5B7A-4D73-859F-62C366276263",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 8,
+            "ring": 6
+          },
+          {
+            "angularIndex": 9,
+            "ring": 6
+          },
+          {
+            "angularIndex": 16,
+            "ring": 7
+          },
+          {
+            "angularIndex": 17,
+            "ring": 7
+          },
+          {
+            "angularIndex": 18,
+            "ring": 7
+          },
+          {
+            "angularIndex": 19,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "75FC934D-08E2-4D6E-BB1E-4364F17E4A94",
+            "program": {
+              "chord": {
+                "notes": [
+                  64,
+                  68,
+                  71
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "CA3BA8E2-03CD-4CCD-8D60-37FEBD452A94",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 10,
+            "ring": 6
+          },
+          {
+            "angularIndex": 11,
+            "ring": 6
+          },
+          {
+            "angularIndex": 20,
+            "ring": 7
+          },
+          {
+            "angularIndex": 21,
+            "ring": 7
+          },
+          {
+            "angularIndex": 22,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "ACB4A4BB-6FFD-4FF8-99B2-323D45A9DD30",
+            "program": {
+              "chord": {
+                "notes": [
+                  67,
+                  71,
+                  74
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "00D22E4C-9071-4150-8821-ECE8ACF0C00D",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 12,
+            "ring": 6
+          },
+          {
+            "angularIndex": 23,
+            "ring": 7
+          },
+          {
+            "angularIndex": 24,
+            "ring": 7
+          },
+          {
+            "angularIndex": 25,
+            "ring": 7
+          },
+          {
+            "angularIndex": 26,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "729E3E48-245C-47FA-9E9D-064FCB129420",
+            "program": {
+              "chord": {
+                "notes": [
+                  67,
+                  70,
+                  74
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "4ED66BBF-EF9A-40CB-818B-316058DB0D56",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 13,
+            "ring": 6
+          },
+          {
+            "angularIndex": 14,
+            "ring": 6
+          },
+          {
+            "angularIndex": 27,
+            "ring": 7
+          },
+          {
+            "angularIndex": 28,
+            "ring": 7
+          },
+          {
+            "angularIndex": 29,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "7B8A0518-4B15-4786-87FF-E352319DFAA1",
+            "program": {
+              "chord": {
+                "notes": [
+                  63,
+                  67,
+                  70
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "757A8FDE-2133-49B7-B1AE-91F674818AB9",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 15,
+            "ring": 6
+          },
+          {
+            "angularIndex": 16,
+            "ring": 6
+          },
+          {
+            "angularIndex": 30,
+            "ring": 7
+          },
+          {
+            "angularIndex": 31,
+            "ring": 7
+          },
+          {
+            "angularIndex": 32,
+            "ring": 7
+          },
+          {
+            "angularIndex": 33,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "32D7CFC0-75BD-4263-85AE-03751F40C681",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  63,
+                  68
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "8B65250A-A412-404E-A5C9-41E0AD5E6C93",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 17,
+            "ring": 6
+          },
+          {
+            "angularIndex": 18,
+            "ring": 6
+          },
+          {
+            "angularIndex": 34,
+            "ring": 7
+          },
+          {
+            "angularIndex": 35,
+            "ring": 7
+          },
+          {
+            "angularIndex": 36,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "795345AC-C773-4CEF-B69B-D928CB0A815A",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  65,
+                  68
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "1EBBA1B5-9378-46AA-9BC8-67F1DD48F394",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 19,
+            "ring": 6
+          },
+          {
+            "angularIndex": 37,
+            "ring": 7
+          },
+          {
+            "angularIndex": 38,
+            "ring": 7
+          },
+          {
+            "angularIndex": 39,
+            "ring": 7
+          },
+          {
+            "angularIndex": 40,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "6BB3D75F-71D9-4ADE-A946-DA7356935B2A",
+            "program": {
+              "chord": {
+                "notes": [
+                  57,
+                  60,
+                  65
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "7E3E1D5A-63B4-465D-AF07-34FE89984FDC",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 20,
+            "ring": 6
+          },
+          {
+            "angularIndex": 21,
+            "ring": 6
+          },
+          {
+            "angularIndex": 41,
+            "ring": 7
+          },
+          {
+            "angularIndex": 42,
+            "ring": 7
+          },
+          {
+            "angularIndex": 43,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "E4EE2D84-2324-437C-9C77-977787F3E34B",
+            "program": {
+              "chord": {
+                "notes": [
+                  57,
+                  61,
+                  64
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.25,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "91D711D3-57E0-4E4C-B503-295210629FCF",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Fixture",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 22,
+            "ring": 6
+          },
+          {
+            "angularIndex": 23,
+            "ring": 6
+          },
+          {
+            "angularIndex": 44,
+            "ring": 7
+          },
+          {
+            "angularIndex": 45,
+            "ring": 7
+          },
+          {
+            "angularIndex": 46,
+            "ring": 7
+          },
+          {
+            "angularIndex": 47,
+            "ring": 7
+          }
+        ],
+        "routings": [
+          {
+            "id": "ABAF5685-E5D2-44E2-8075-E16BAFDE1B82",
+            "program": {
+              "chord": {
+                "notes": [
+                  61,
+                  64,
+                  68
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "selectedLayerID": "3F613E5A-26D6-457F-84C5-000AC03E72B7"
+  },
+  "timbre": {
+    "attackSeconds": 0.04,
+    "decaySeconds": 0.12,
+    "filterResonance": 2.2,
+    "morph": 0.45,
+    "releaseSeconds": 0.25,
+    "sustainLevel": 0.9
+  },
+  "viewport": {
+    "centerX": 0,
+    "centerY": -0.009,
+    "halfExtent": 0.018
+  },
+  "zones": [
+    {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "pitch",
+      "shape": {
+        "kind": "fan",
+        "range": 7,
+        "values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "volume",
+      "shape": {
+        "kind": "strip"
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "gate",
+      "shape": {
+        "kind": "strip"
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    }
+  ]
+}

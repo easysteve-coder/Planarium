@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "name": "Simple Three Bands",
+  "summary": "One channel, three radial bands: C4, E4, G4 (C major triad notes, one per distance band).",
+  "channels": [
+    { "id": "lead", "instrument": "surge.init", "levelDb": -9 }
+  ],
+  "bands": [
+    { "id": "c4", "fromCm": 40,  "toCm": 80,  "note": "C4", "channel": "lead", "color": "#4CAF50" },
+    { "id": "e4", "fromCm": 80,  "toCm": 120, "note": "E4", "channel": "lead", "color": "#FF7043" },
+    { "id": "g4", "fromCm": 120, "toCm": 160, "note": "G4", "channel": "lead", "color": "#42A5F5" }
+  ]
+}

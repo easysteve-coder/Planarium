@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "name": "Eagle Organ – A Blues",
+  "mode": "gate",
+  "channels": [
+    {
+      "id": "organ",
+      "instrument": "surge.organ1",
+      "effects": ["apple.delay.eagle"],
+      "levelDb": -9
+    }
+  ],
+  "bands": [
+    {"id": "a3",  "label": "A3",  "fromCm": 40,  "toCm": 60,  "note": "A3",  "channel": "organ", "color": "#D4820A"},
+    {"id": "c4",  "label": "C4",  "fromCm": 60,  "toCm": 80,  "note": "C4",  "channel": "organ", "color": "#B33939"},
+    {"id": "d4",  "label": "D4",  "fromCm": 80,  "toCm": 100, "note": "D4",  "channel": "organ", "color": "#C96B2E"},
+    {"id": "eb4", "label": "Eb4", "fromCm": 100, "toCm": 120, "note": "Eb4", "channel": "organ", "color": "#D4A017"},
+    {"id": "e4",  "label": "E4",  "fromCm": 120, "toCm": 140, "note": "E4",  "channel": "organ", "color": "#6B8E23"},
+    {"id": "g4",  "label": "G4",  "fromCm": 140, "toCm": 160, "note": "G4",  "channel": "organ", "color": "#4682B4"},
+    {"id": "a4",  "label": "A4",  "fromCm": 160, "toCm": 180, "note": "A4",  "channel": "organ", "color": "#7B4FA0"}
+  ]
+}

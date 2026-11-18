@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "name": "Table 1 m",
+  "summary": "Small-room layout for a table about one metre in front of the scanner: a rectangle, a circle and a triangle, each playing one note.",
+  "velocity": 80,
+  "channels": [
+    { "id": "lead", "instrument": "surge.init", "effects": ["apple.delay.eagle"], "levelDb": -9 }
+  ],
+  "playArea": { "type": "rectangle", "xMinCm": -50, "xMaxCm": 50, "yMinCm": 20, "yMaxCm": 100 },
+  "regions": [
+    { "id": "low",  "label": "C4 box",      "shape": { "type": "rectangle", "widthCm": 40, "heightCm": 30 },
+      "transform": { "xCm": -25, "yCm": 40 }, "note": "C4", "channel": "lead", "color": "#4CAF50" },
+    { "id": "mid",  "label": "E4 circle",   "shape": { "type": "circle", "radiusCm": 15 },
+      "transform": { "xCm": 25, "yCm": 45 }, "note": "E4", "channel": "lead", "color": "#42A5F5" },
+    { "id": "high", "label": "G4 triangle", "shape": { "type": "polygon", "pointsCm": [[-20, 0], [20, 0], [0, 25]] },
+      "transform": { "xCm": 0, "yCm": 72 }, "note": "G4", "channel": "lead", "color": "#FF7043" }
+  ]
+}

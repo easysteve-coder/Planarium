@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Hardened Runtime (SICK-039): Audio Units von Drittanbietern
+         laufen im selben Prozess; ohne diese Ausnahme lehnt die
+         gehärtete Laufzeit fremde Plug-in-Bibliotheken ab. Keine
+         Sandbox: der serielle Port ist ein Gerätepfad. -->
+    <key>com.apple.security.cs.disable-library-validation</key>
+    <true/>
+    <key>com.apple.security.device.audio-input</key>
+    <false/>
+</dict>
+</plist>

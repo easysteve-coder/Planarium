@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "name": "Eagle Organ – A Blues",
+  "summary": "7 radial gate bands 40–180 cm (A Blues pentatonic: A3 C4 D4 Eb4 E4 G4 A4) on an organ with the measured Eagle delay (25 % mix, 280 ms, 20 % feedback).",
+  "channels": [
+    { "id": "organ", "instrument": "surge.organ1", "effects": ["apple.delay.eagle"], "levelDb": -9 }
+  ],
+  "bands": [
+    { "id": "a3",  "label": "A3",  "fromCm": 40,  "toCm": 60,  "note": 57, "channel": "organ", "color": "#D4820A" },
+    { "id": "c4",  "label": "C4",  "fromCm": 60,  "toCm": 80,  "note": 60, "channel": "organ", "color": "#4CAF50" },
+    { "id": "d4",  "label": "D4",  "fromCm": 80,  "toCm": 100, "note": 62, "channel": "organ", "color": "#42A5F5" },
+    { "id": "eb4", "label": "Eb4", "fromCm": 100, "toCm": 120, "note": 63, "channel": "organ", "color": "#C9A84C" },
+    { "id": "e4",  "label": "E4",  "fromCm": 120, "toCm": 140, "note": 64, "channel": "organ", "color": "#FF7043" },
+    { "id": "g4",  "label": "G4",  "fromCm": 140, "toCm": 160, "note": 67, "channel": "organ", "color": "#8FBC8F" },
+    { "id": "a4",  "label": "A4",  "fromCm": 160, "toCm": 180, "note": 69, "channel": "organ", "color": "#9C88C4" }
+  ]
+}

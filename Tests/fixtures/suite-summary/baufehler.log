@@ -1,0 +1,5 @@
+Building for debugging...
+error: SwiftCompile normal arm64 /x/Foo.swift failed with a nonzero exit code.
+/x/Foo.swift:12:9: error: cannot find 'Bar' in scope
+error: Build failed
+error: fatalError

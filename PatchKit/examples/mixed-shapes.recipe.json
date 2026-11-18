@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "name": "Mixed Shapes",
+  "summary": "All four shapes on a fan-shaped play area: a turned rectangle, a mirrored L-shaped polygon, a circle that is clipped at the play area edge and a scanner-centred ring sector on a second channel that layers over the polygon.",
+  "velocity": 80,
+  "outsidePolicy": "clip",
+  "channels": [
+    { "id": "lead", "instrument": "surge.init", "levelDb": -9 },
+    { "id": "pad",  "instrument": "surge.init", "effects": ["apple.delay.eagle"], "levelDb": -15 }
+  ],
+  "playArea": { "type": "sector", "fromCm": 30, "toCm": 240, "fromDegrees": -70, "toDegrees": 70 },
+  "regions": [
+    { "id": "tilted", "label": "Turned box", "shape": { "type": "rectangle", "widthCm": 60, "heightCm": 24 },
+      "transform": { "xCm": -90, "yCm": 110, "rotationDegrees": 30 }, "note": "A3", "channel": "lead", "color": "#9C88C4" },
+    { "id": "ell", "label": "L mirrored", "shape": { "type": "polygon", "pointsCm": [[0, 0], [50, 0], [50, 20], [20, 20], [20, 60], [0, 60]] },
+      "transform": { "xCm": 60, "yCm": 80, "mirrorX": true }, "notes": ["C4", "E4", "G4"], "channel": "lead", "color": "#4CAF50" },
+    { "id": "edge", "label": "Clipped circle", "shape": { "type": "circle", "radiusCm": 30 },
+      "transform": { "xCm": 0, "yCm": 225 }, "note": "D4", "channel": "lead", "color": "#FF7043" },
+    { "id": "arc", "label": "Ring arc", "shape": { "type": "sector", "fromCm": 110, "toCm": 150, "fromDegrees": -30, "toDegrees": 30 },
+      "note": "C3", "channel": "pad", "color": "#42A5F5", "velocity": 60 }
+  ]
+}

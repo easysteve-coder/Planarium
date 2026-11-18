@@ -1,0 +1,233 @@
+{
+  "assignment" : {
+    "gate" : "98465FC8-882E-4D0C-9BBA-CBC2C9AA9626",
+    "pitch" : "D17C138E-7C87-40C7-BFAF-51CAEE911BC8"
+  },
+  "audioUnits" : {
+    "entries" : [
+      {
+        "componentManufacturer" : 2,
+        "componentSubType" : 1,
+        "componentType" : 1635083896,
+        "isBypassed" : true
+      }
+    ]
+  },
+  "delay" : {
+    "feedbackPercent" : 30,
+    "isEnabled" : true,
+    "sendLevel" : 0.3,
+    "timeSeconds" : 0.25
+  },
+  "formatVersion" : 3,
+  "gate" : {
+    "polarity" : "aboveThreshold",
+    "threshold" : 0.5
+  },
+  "layers" : [
+    {
+      "mixRule" : "firstActive",
+      "role" : "pitch",
+      "targetKind" : "discrete",
+      "zoneIDs" : [
+        "D17C138E-7C87-40C7-BFAF-51CAEE911BC8"
+      ]
+    },
+    {
+      "mixRule" : "firstActive",
+      "role" : "volume",
+      "targetKind" : "continuous",
+      "zoneIDs" : [
+
+      ]
+    },
+    {
+      "mixRule" : "firstActive",
+      "role" : "filter",
+      "targetKind" : "continuous",
+      "zoneIDs" : [
+
+      ]
+    },
+    {
+      "mixRule" : "firstActive",
+      "role" : "gate",
+      "targetKind" : "gate",
+      "zoneIDs" : [
+        "98465FC8-882E-4D0C-9BBA-CBC2C9AA9626"
+      ]
+    },
+    {
+      "mixRule" : "firstActive",
+      "role" : "effectSend",
+      "targetKind" : "continuous",
+      "zoneIDs" : [
+
+      ]
+    }
+  ],
+  "mapping" : {
+    "effectSendPolarity" : "normal",
+    "filterHighestHz" : 8000,
+    "filterLowestHz" : 200,
+    "filterPolarity" : "normal",
+    "maximumAmplitude" : 0.8,
+    "pitchHighestHz" : 880,
+    "pitchLowestHz" : 110,
+    "pitchPolarity" : "normal",
+    "volumeCurve" : "linear",
+    "volumePolarity" : "normal"
+  },
+  "masterGain" : 0.7,
+  "midi" : {
+    "bendRangeSemitones" : 12,
+    "channel" : 3,
+    "effectSendController" : 91,
+    "filterController" : 74,
+    "pitchInverted" : false,
+    "rootNote" : 33,
+    "spanSemitones" : 60,
+    "volumeController" : 7
+  },
+  "name" : "M0-Polar-v3",
+  "prediction" : {
+    "alpha" : 0.5,
+    "beta" : 0.1,
+    "outlierThreshold" : 0.3,
+    "predictionHorizonSeconds" : 0.05,
+    "staleTimeoutSeconds" : 0.5
+  },
+  "reverb" : {
+    "character" : "smallRoom",
+    "isEnabled" : false,
+    "sendLevel" : 0.2
+  },
+  "spatialWorkspace" : {
+    "channelColor" : {
+      "alpha" : 1,
+      "blue" : 0.96,
+      "green" : 0.55,
+      "red" : 0.18
+    },
+    "channelName" : "PLANARIUM",
+    "coordinateMode" : "polar",
+    "detectionConfiguration" : {
+      "cellSelection" : {
+        "boundaryMarginCentimeters" : 0,
+        "confirmationProfiles" : 1
+      },
+      "continuousBacklashCentimeters" : 0,
+      "groupingEnabled" : true,
+      "groupingJumpCentimeters" : 10,
+      "groupingMinimumPoints" : 1,
+      "representative" : "mean",
+      "representativeOffsetCentimeters" : 0,
+      "temporalSmoothing" : {
+        "off" : {
+
+        }
+      }
+    },
+    "grid" : {
+      "cellSizeMeters" : 0.5
+    },
+    "layers" : [
+      {
+        "color" : {
+          "alpha" : 1,
+          "blue" : 0,
+          "green" : 0.55,
+          "red" : 1
+        },
+        "id" : "5C43E8C0-EFE3-473B-BF92-C97217602232",
+        "isActive" : true,
+        "isLocked" : false,
+        "isSoloed" : false,
+        "isVisible" : true,
+        "name" : "Noten",
+        "polarCellOverrides" : [
+          {
+            "angularIndex" : 8,
+            "ring" : 2
+          },
+          [
+            {
+              "target" : {
+                "midiNote" : {
+                  "channel" : 0
+                }
+              },
+              "value" : {
+                "note" : {
+                  "number" : 60,
+                  "velocity" : 100
+                }
+              }
+            }
+          ]
+        ],
+        "polarCells" : [
+          {
+            "angularIndex" : 8,
+            "ring" : 2
+          }
+        ],
+        "routings" : [
+
+        ]
+      }
+    ],
+    "scenes" : [
+
+    ],
+    "selectedLayerID" : "5C43E8C0-EFE3-473B-BF92-C97217602232"
+  },
+  "timbre" : {
+    "attackSeconds" : 0.01,
+    "decaySeconds" : 0.1,
+    "filterResonance" : 1.5,
+    "morph" : 0.5,
+    "releaseSeconds" : 0.2,
+    "sustainLevel" : 0.8
+  },
+  "viewport" : {
+    "centerX" : 0.1,
+    "centerY" : 0.2,
+    "halfExtent" : 0.4
+  },
+  "zones" : [
+    {
+      "id" : "D17C138E-7C87-40C7-BFAF-51CAEE911BC8",
+      "indexLowerBound" : 0,
+      "indexUpperBound" : 0.5,
+      "isEnabled" : true,
+      "role" : "pitch",
+      "shape" : {
+        "columns" : 2,
+        "kind" : "grid",
+        "range" : 4,
+        "rows" : 2,
+        "values" : [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "valueLowerBound" : 100,
+      "valueUpperBound" : 4000
+    },
+    {
+      "id" : "98465FC8-882E-4D0C-9BBA-CBC2C9AA9626",
+      "indexLowerBound" : 0.5,
+      "indexUpperBound" : 1,
+      "isEnabled" : true,
+      "role" : "gate",
+      "shape" : {
+        "kind" : "strip"
+      },
+      "valueLowerBound" : 100,
+      "valueUpperBound" : 4000
+    }
+  ]
+}

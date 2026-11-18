@@ -1,0 +1,926 @@
+{
+  "assignment": {
+    "gate": "30000000-0000-0000-0000-000000000003",
+    "pitch": "30000000-0000-0000-0000-000000000001",
+    "volume": "30000000-0000-0000-0000-000000000002"
+  },
+  "audioUnits": {
+    "entries": []
+  },
+  "delay": {
+    "feedbackPercent": 25,
+    "isEnabled": false,
+    "sendLevel": 0.5,
+    "timeSeconds": 0.25
+  },
+  "formatVersion": 3,
+  "gate": {
+    "polarity": "belowThreshold",
+    "threshold": 1
+  },
+  "instrumentChannel": {
+    "id": "primary",
+    "pan": 0
+  },
+  "layers": [
+    {
+      "mixRule": "firstActive",
+      "role": "pitch",
+      "targetKind": "discrete",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000001"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "volume",
+      "targetKind": "continuous",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000002"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "filter",
+      "targetKind": "continuous",
+      "zoneIDs": []
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "gate",
+      "targetKind": "gate",
+      "zoneIDs": [
+        "30000000-0000-0000-0000-000000000003"
+      ]
+    },
+    {
+      "mixRule": "firstActive",
+      "role": "effectSend",
+      "targetKind": "continuous",
+      "zoneIDs": []
+    }
+  ],
+  "mapping": {
+    "effectSendPolarity": "normal",
+    "filterHighestHz": 12000,
+    "filterLowestHz": 200,
+    "filterPolarity": "normal",
+    "maximumAmplitude": 0.64,
+    "pitchHighestHz": 329.63,
+    "pitchLowestHz": 41.2,
+    "pitchPolarity": "normal",
+    "volumeCurve": "linear",
+    "volumePolarity": "inverted"
+  },
+  "masterGain": 0.65,
+  "midi": {
+    "bendRangeSemitones": 2,
+    "channel": 1,
+    "effectSendController": 91,
+    "filterController": 74,
+    "pitchInverted": false,
+    "rootNote": 33,
+    "spanSemitones": 60,
+    "volumeController": 7
+  },
+  "name": "Keller 03 Zwei Haende",
+  "prediction": {
+    "alpha": 0.5,
+    "beta": 0.1,
+    "outlierThreshold": 0.5,
+    "predictionHorizonSeconds": 0.06,
+    "staleTimeoutSeconds": 0.35
+  },
+  "reverb": {
+    "character": "smallRoom",
+    "isEnabled": true,
+    "sendLevel": 0.12
+  },
+  "spatialWorkspace": {
+    "coordinateMode": "polar",
+    "grid": {
+      "cellSizeMeters": 0.1
+    },
+    "layers": [
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.35,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "19AEC2EA-FADF-47F7-8062-A5E11A5E2B99",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Am",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 8,
+            "ring": 3
+          },
+          {
+            "angularIndex": 9,
+            "ring": 3
+          },
+          {
+            "angularIndex": 10,
+            "ring": 3
+          },
+          {
+            "angularIndex": 14,
+            "ring": 3
+          },
+          {
+            "angularIndex": 15,
+            "ring": 3
+          },
+          {
+            "angularIndex": 8,
+            "ring": 4
+          },
+          {
+            "angularIndex": 9,
+            "ring": 4
+          },
+          {
+            "angularIndex": 14,
+            "ring": 4
+          },
+          {
+            "angularIndex": 15,
+            "ring": 4
+          },
+          {
+            "angularIndex": 8,
+            "ring": 5
+          },
+          {
+            "angularIndex": 9,
+            "ring": 5
+          },
+          {
+            "angularIndex": 14,
+            "ring": 5
+          },
+          {
+            "angularIndex": 15,
+            "ring": 5
+          },
+          {
+            "angularIndex": 8,
+            "ring": 6
+          },
+          {
+            "angularIndex": 14,
+            "ring": 6
+          },
+          {
+            "angularIndex": 15,
+            "ring": 6
+          }
+        ],
+        "routings": [
+          {
+            "id": "B1014138-6A88-44B5-8C2F-F8D59B172F93",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  64,
+                  69
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 1.0,
+          "green": 0.54,
+          "red": 0.35
+        },
+        "id": "6904C4FA-EFE0-4C1B-9ECC-D53817B784A1",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Dm",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 29,
+            "ring": 7
+          },
+          {
+            "angularIndex": 30,
+            "ring": 7
+          },
+          {
+            "angularIndex": 31,
+            "ring": 7
+          },
+          {
+            "angularIndex": 32,
+            "ring": 7
+          },
+          {
+            "angularIndex": 29,
+            "ring": 8
+          },
+          {
+            "angularIndex": 30,
+            "ring": 8
+          },
+          {
+            "angularIndex": 31,
+            "ring": 8
+          },
+          {
+            "angularIndex": 32,
+            "ring": 8
+          },
+          {
+            "angularIndex": 29,
+            "ring": 9
+          },
+          {
+            "angularIndex": 30,
+            "ring": 9
+          },
+          {
+            "angularIndex": 31,
+            "ring": 9
+          },
+          {
+            "angularIndex": 32,
+            "ring": 9
+          },
+          {
+            "angularIndex": 29,
+            "ring": 10
+          },
+          {
+            "angularIndex": 30,
+            "ring": 10
+          },
+          {
+            "angularIndex": 31,
+            "ring": 10
+          },
+          {
+            "angularIndex": 32,
+            "ring": 10
+          }
+        ],
+        "routings": [
+          {
+            "id": "2474E215-EFFD-4545-B04A-7C9EA0DAF793",
+            "program": {
+              "chord": {
+                "notes": [
+                  62,
+                  65,
+                  69
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.35,
+          "green": 1.0,
+          "red": 0.729
+        },
+        "id": "29F0B111-F6C2-4ABB-8070-8E3EBA29203F",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "Em",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 29,
+            "ring": 11
+          },
+          {
+            "angularIndex": 30,
+            "ring": 11
+          },
+          {
+            "angularIndex": 31,
+            "ring": 11
+          },
+          {
+            "angularIndex": 32,
+            "ring": 11
+          },
+          {
+            "angularIndex": 29,
+            "ring": 12
+          },
+          {
+            "angularIndex": 30,
+            "ring": 12
+          },
+          {
+            "angularIndex": 31,
+            "ring": 12
+          },
+          {
+            "angularIndex": 32,
+            "ring": 12
+          },
+          {
+            "angularIndex": 29,
+            "ring": 13
+          },
+          {
+            "angularIndex": 30,
+            "ring": 13
+          },
+          {
+            "angularIndex": 31,
+            "ring": 13
+          },
+          {
+            "angularIndex": 32,
+            "ring": 13
+          },
+          {
+            "angularIndex": 29,
+            "ring": 14
+          },
+          {
+            "angularIndex": 30,
+            "ring": 14
+          },
+          {
+            "angularIndex": 31,
+            "ring": 14
+          },
+          {
+            "angularIndex": 32,
+            "ring": 14
+          }
+        ],
+        "routings": [
+          {
+            "id": "AC6661BB-78C9-4389-BA84-0B803E599174",
+            "program": {
+              "chord": {
+                "notes": [
+                  59,
+                  64,
+                  67
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.919,
+          "green": 0.35,
+          "red": 1.0
+        },
+        "id": "FBB2E5AA-A794-48DA-9A69-CDC49034B01A",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "C",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 16,
+            "ring": 3
+          },
+          {
+            "angularIndex": 17,
+            "ring": 3
+          },
+          {
+            "angularIndex": 18,
+            "ring": 3
+          },
+          {
+            "angularIndex": 19,
+            "ring": 3
+          },
+          {
+            "angularIndex": 20,
+            "ring": 3
+          },
+          {
+            "angularIndex": 21,
+            "ring": 3
+          },
+          {
+            "angularIndex": 22,
+            "ring": 3
+          },
+          {
+            "angularIndex": 23,
+            "ring": 3
+          },
+          {
+            "angularIndex": 16,
+            "ring": 4
+          },
+          {
+            "angularIndex": 17,
+            "ring": 4
+          },
+          {
+            "angularIndex": 18,
+            "ring": 4
+          },
+          {
+            "angularIndex": 19,
+            "ring": 4
+          },
+          {
+            "angularIndex": 20,
+            "ring": 4
+          },
+          {
+            "angularIndex": 21,
+            "ring": 4
+          },
+          {
+            "angularIndex": 22,
+            "ring": 4
+          },
+          {
+            "angularIndex": 23,
+            "ring": 4
+          },
+          {
+            "angularIndex": 16,
+            "ring": 5
+          },
+          {
+            "angularIndex": 17,
+            "ring": 5
+          },
+          {
+            "angularIndex": 18,
+            "ring": 5
+          },
+          {
+            "angularIndex": 19,
+            "ring": 5
+          },
+          {
+            "angularIndex": 20,
+            "ring": 5
+          },
+          {
+            "angularIndex": 21,
+            "ring": 5
+          },
+          {
+            "angularIndex": 22,
+            "ring": 5
+          },
+          {
+            "angularIndex": 23,
+            "ring": 5
+          },
+          {
+            "angularIndex": 16,
+            "ring": 6
+          },
+          {
+            "angularIndex": 17,
+            "ring": 6
+          },
+          {
+            "angularIndex": 18,
+            "ring": 6
+          }
+        ],
+        "routings": [
+          {
+            "id": "AC27ED3D-AB9F-46F7-9818-5BB17C28DF58",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  64,
+                  67
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.891,
+          "green": 1.0,
+          "red": 0.35
+        },
+        "id": "DA8975D6-9663-40F6-9D20-0FA13F4871C4",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "F",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 19,
+            "ring": 6
+          },
+          {
+            "angularIndex": 20,
+            "ring": 6
+          },
+          {
+            "angularIndex": 21,
+            "ring": 6
+          },
+          {
+            "angularIndex": 22,
+            "ring": 6
+          },
+          {
+            "angularIndex": 23,
+            "ring": 6
+          },
+          {
+            "angularIndex": 33,
+            "ring": 7
+          },
+          {
+            "angularIndex": 34,
+            "ring": 7
+          },
+          {
+            "angularIndex": 35,
+            "ring": 7
+          },
+          {
+            "angularIndex": 36,
+            "ring": 7
+          },
+          {
+            "angularIndex": 37,
+            "ring": 7
+          },
+          {
+            "angularIndex": 38,
+            "ring": 7
+          },
+          {
+            "angularIndex": 39,
+            "ring": 7
+          },
+          {
+            "angularIndex": 33,
+            "ring": 8
+          },
+          {
+            "angularIndex": 34,
+            "ring": 8
+          },
+          {
+            "angularIndex": 35,
+            "ring": 8
+          },
+          {
+            "angularIndex": 36,
+            "ring": 8
+          },
+          {
+            "angularIndex": 37,
+            "ring": 8
+          },
+          {
+            "angularIndex": 38,
+            "ring": 8
+          },
+          {
+            "angularIndex": 39,
+            "ring": 8
+          },
+          {
+            "angularIndex": 33,
+            "ring": 9
+          },
+          {
+            "angularIndex": 34,
+            "ring": 9
+          },
+          {
+            "angularIndex": 35,
+            "ring": 9
+          },
+          {
+            "angularIndex": 36,
+            "ring": 9
+          },
+          {
+            "angularIndex": 37,
+            "ring": 9
+          },
+          {
+            "angularIndex": 38,
+            "ring": 9
+          },
+          {
+            "angularIndex": 39,
+            "ring": 9
+          },
+          {
+            "angularIndex": 33,
+            "ring": 10
+          }
+        ],
+        "routings": [
+          {
+            "id": "38A85DCD-8D68-4DD3-8DFA-CAA5B6FA3CD6",
+            "program": {
+              "chord": {
+                "notes": [
+                  60,
+                  65,
+                  69
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      },
+      {
+        "color": {
+          "alpha": 1,
+          "blue": 0.35,
+          "green": 0.702,
+          "red": 1.0
+        },
+        "id": "23CDFA26-CC1B-4ABB-A5A8-99F9D5D4015B",
+        "isActive": true,
+        "isLocked": false,
+        "isSoloed": false,
+        "isVisible": true,
+        "name": "G",
+        "polarCellOverrides": [],
+        "polarCells": [
+          {
+            "angularIndex": 34,
+            "ring": 10
+          },
+          {
+            "angularIndex": 35,
+            "ring": 10
+          },
+          {
+            "angularIndex": 36,
+            "ring": 10
+          },
+          {
+            "angularIndex": 37,
+            "ring": 10
+          },
+          {
+            "angularIndex": 38,
+            "ring": 10
+          },
+          {
+            "angularIndex": 33,
+            "ring": 11
+          },
+          {
+            "angularIndex": 34,
+            "ring": 11
+          },
+          {
+            "angularIndex": 35,
+            "ring": 11
+          },
+          {
+            "angularIndex": 36,
+            "ring": 11
+          },
+          {
+            "angularIndex": 37,
+            "ring": 11
+          },
+          {
+            "angularIndex": 38,
+            "ring": 11
+          },
+          {
+            "angularIndex": 33,
+            "ring": 12
+          },
+          {
+            "angularIndex": 34,
+            "ring": 12
+          },
+          {
+            "angularIndex": 35,
+            "ring": 12
+          },
+          {
+            "angularIndex": 36,
+            "ring": 12
+          },
+          {
+            "angularIndex": 37,
+            "ring": 12
+          },
+          {
+            "angularIndex": 33,
+            "ring": 13
+          },
+          {
+            "angularIndex": 34,
+            "ring": 13
+          },
+          {
+            "angularIndex": 35,
+            "ring": 13
+          },
+          {
+            "angularIndex": 36,
+            "ring": 13
+          },
+          {
+            "angularIndex": 37,
+            "ring": 13
+          },
+          {
+            "angularIndex": 33,
+            "ring": 14
+          },
+          {
+            "angularIndex": 34,
+            "ring": 14
+          },
+          {
+            "angularIndex": 35,
+            "ring": 14
+          },
+          {
+            "angularIndex": 36,
+            "ring": 14
+          },
+          {
+            "angularIndex": 72,
+            "ring": 15
+          },
+          {
+            "angularIndex": 73,
+            "ring": 15
+          }
+        ],
+        "routings": [
+          {
+            "id": "92444080-03C2-4A81-86CC-BC06DB1A22B9",
+            "program": {
+              "chord": {
+                "notes": [
+                  59,
+                  62,
+                  67
+                ],
+                "transition": {
+                  "legato": {}
+                },
+                "velocity": 100
+              }
+            },
+            "target": {
+              "audioUnitNote": {
+                "channel": 0
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "selectedLayerID": "19AEC2EA-FADF-47F7-8062-A5E11A5E2B99"
+  },
+  "timbre": {
+    "attackSeconds": 0.04,
+    "decaySeconds": 0.12,
+    "filterResonance": 2.2,
+    "morph": 0.45,
+    "releaseSeconds": 0.25,
+    "sustainLevel": 0.9
+  },
+  "viewport": {
+    "centerX": 0,
+    "centerY": -0.009,
+    "halfExtent": 0.018
+  },
+  "zones": [
+    {
+      "id": "30000000-0000-0000-0000-000000000001",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "pitch",
+      "shape": {
+        "kind": "fan",
+        "range": 7,
+        "values": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000002",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "volume",
+      "shape": {
+        "kind": "strip"
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    },
+    {
+      "id": "30000000-0000-0000-0000-000000000003",
+      "indexLowerBound": 0.25,
+      "indexUpperBound": 0.75,
+      "isEnabled": true,
+      "role": "gate",
+      "shape": {
+        "kind": "strip"
+      },
+      "valueLowerBound": 1,
+      "valueUpperBound": 120
+    }
+  ]
+}

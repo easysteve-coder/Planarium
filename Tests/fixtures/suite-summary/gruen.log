@@ -1,0 +1,7 @@
+Test Suite 'Beispiel' started at 2026-01-01 00:00:00.000
+Test Case '-[Beispiel testEins]' started.
+Test Case '-[Beispiel testEins]' passed (0.001 seconds).
+Test Case '-[Beispiel testZwei]' started.
+Test Case '-[Beispiel testZwei]' passed (0.002 seconds).
+Test Suite 'Beispiel' passed at 2026-01-01 00:00:01.000
+	 Executed 2 tests, with 0 failures (0 unexpected) in 0.003 (0.004) seconds

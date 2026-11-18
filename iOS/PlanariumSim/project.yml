@@ -1,0 +1,51 @@
+name: PlanariumSim
+options:
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+packages:
+  SickPackage:
+    path: ../..
+targets:
+  PlanariumSim:
+    type: application
+    platform: iOS
+    sources:
+      - path: PlanariumSim
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.sick.pls.planariumsim
+        PRODUCT_NAME: PlanariumSim
+        SWIFT_VERSION: 5.9
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        TARGETED_DEVICE_FAMILY: "1"
+    dependencies:
+      - package: SickPackage
+        product: SickPLSDeviceModel
+      - package: SickPackage
+        product: SickPLSSimulationLink
+      - package: SickPackage
+        product: SickPLSSimulationBroadcast
+    info:
+      path: PlanariumSim/Info.plist
+      properties:
+        NSLocalNetworkUsageDescription: Sendet simulierte Scannerdaten an Planarium auf deinem Mac im selben WLAN.
+        NSBonjourServices:
+          - _planarium-sim._tcp
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+  PlanariumSimTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: PlanariumSimTests
+    dependencies:
+      - target: PlanariumSim
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: de.sick.pls.planariumsim.tests
+        SWIFT_VERSION: 5.9
+        GENERATE_INFOPLIST_FILE: YES
