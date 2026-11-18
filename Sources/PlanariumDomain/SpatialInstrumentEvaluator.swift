@@ -2,49 +2,6 @@ import Foundation
 import PLSDeviceValues
 import SickPLSCore
 
-public struct SpatialPlayedNote: Hashable, Sendable {
-    public let number: UInt8
-    public let velocity: UInt8
-
-    public init(number: UInt8, velocity: UInt8) {
-        self.number = min(number, 127)
-        self.velocity = min(velocity, 127)
-    }
-}
-
-public enum SpatialEvaluatedValue: Equatable, Sendable {
-    case programChange(SpatialProgramChange)
-    case inactive
-    case notes(Set<SpatialPlayedNote>, transition: SpatialNoteTransition)
-    case scalar(Double)
-    case boolean(Bool)
-}
-
-public struct SpatialRoutingEvaluation: Equatable, Sendable {
-    /// Measured representative priority; geometry stays outside the ledger.
-    public var displayCell: PolarDeviceLattice?
-    public var representativeDistanceSquared: Double = .infinity
-    public var midiDestination: SpatialOutputDestination = .midi
-    public let routingID: UUID
-    public let target: SpatialRoutingTarget
-    public let value: SpatialEvaluatedValue
-    /// Toggle entry identity: the compiled anchor of a painted surface,
-    /// shared by its fine segments. Hold carries its measured sounding cell.
-    public let cell: PolarDeviceLattice?
-    public let commonNotes: SpatialCommonNotes
-    public let toggleGuardSeconds: Double
-
-    public init(routingID: UUID, target: SpatialRoutingTarget, value: SpatialEvaluatedValue, cell: PolarDeviceLattice? = nil,
-                toggleGuardSeconds: Double = 0, commonNotes: SpatialCommonNotes = .keep) {
-        self.routingID = routingID
-        self.target = target
-        self.value = value
-        self.cell = cell
-        self.commonNotes = commonNotes
-        self.toggleGuardSeconds = SpatialInstrumentLayer.normalizedToggleGuard(toggleGuardSeconds)
-    }
-}
-
 /// Pure coarse-cell value projection for editor labels. Live profiles use
 /// the compiled detection and value plan; this type owns no selection state.
 public struct SpatialInstrumentEvaluator: Sendable {

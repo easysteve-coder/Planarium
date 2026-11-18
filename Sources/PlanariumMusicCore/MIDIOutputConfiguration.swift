@@ -1,4 +1,3 @@
-import PLSDeviceValues
 
 
 /// Wie der gemeinsame Steuerweg auf MIDI 1 abgebildet wird (SICK-036a).

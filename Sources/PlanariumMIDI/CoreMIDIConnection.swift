@@ -2,8 +2,8 @@ import CoreMIDI
 import Darwin
 import Foundation
 import Dispatch
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 
 /// Main owns client/port disposal; Q receives only immutable handles.
 @MainActor public final class CoreMIDIConnection: MIDIConnectionBoundary {

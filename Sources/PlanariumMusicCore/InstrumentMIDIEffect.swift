@@ -72,9 +72,9 @@ public struct ChordEffect: Codable, Equatable, Sendable {
 }
 
 /// Constructed when the document is compiled, never in the profile evaluation loop.
-struct CompiledMIDIEffectChain: Equatable, Sendable {
-    let pitches: [[UInt8]]
-    init(_ slots: [InstrumentMIDIEffect]) {
+package struct CompiledMIDIEffectChain: Equatable, Sendable {
+    package let pitches: [[UInt8]]
+    package init(_ slots: [InstrumentMIDIEffect]) {
         let active = slots.filter { !$0.bypassed }
         let stages: [[[Int]]] = active.prefix { $0.kind != .arpeggiator }.map { slot in
             switch slot.kind {
@@ -90,7 +90,7 @@ struct CompiledMIDIEffectChain: Equatable, Sendable {
             return notes.map { UInt8($0) }
         }
     }
-    func apply(_ value: SpatialEvaluatedValue) -> SpatialEvaluatedValue {
+    package func apply(_ value: SpatialEvaluatedValue) -> SpatialEvaluatedValue {
         guard case let .notes(notes, transition) = value else { return value }
         var velocities: [UInt8: UInt8] = [:]
         for note in notes {
@@ -136,7 +136,7 @@ public struct ArpeggiatorEffect: Codable, Equatable, Sendable {
 public enum ArpeggiatorModulationTarget: String, Codable, Hashable, CaseIterable, Sendable {
     case rate, octaves, gate, swing, velocity
     public var title: String { rawValue.prefix(1).uppercased() + rawValue.dropFirst() }
-    func apply(_ scalar: Double, to effect: inout ArpeggiatorEffect, previous: Double? = nil) -> Double {
+    package func apply(_ scalar: Double, to effect: inout ArpeggiatorEffect, previous: Double? = nil) -> Double {
         let unit = min(1, max(0, scalar.isFinite ? scalar : 0))
         let mapped: Double
         switch self {

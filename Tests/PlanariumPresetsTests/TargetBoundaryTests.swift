@@ -74,6 +74,24 @@ final class TargetBoundaryTests: XCTestCase {
         ])
     }
 
+    func testSoundModulesCannotReachScannerOrDomain() throws {
+        let data = Data(#"""
+        {"targets":[
+          {"name":"PlanariumMusicCore","type":"regular","dependencies":[]},
+          {"name":"SickPLSCore","type":"regular","dependencies":[]},
+          {"name":"PLSDeviceValues","type":"regular","dependencies":[{"target":["SickPLSCore",null]}]},
+          {"name":"PlanariumDomain","type":"regular","dependencies":[{"byName":["PLSDeviceValues",null]},{"byName":["PlanariumMusicCore",null]}]},
+          {"name":"PlanariumSoundCore","type":"regular","dependencies":[{"byName":["PlanariumMusicCore",null]}]},
+          {"name":"PlanariumMIDI","type":"regular","dependencies":[{"byName":["PlanariumSoundCore",null]},{"byName":["PlanariumDomain",null]}]}
+        ]}
+        """#.utf8)
+        XCTAssertEqual(try ManifestBoundaries.violations(in: data), [
+            "PlanariumMIDI -> PlanariumDomain -> PLSDeviceValues -> SickPLSCore: transitive boundary midi -> deviceCore is forbidden",
+            "PlanariumMIDI -> PlanariumDomain -> PLSDeviceValues: transitive boundary midi -> deviceValues is forbidden",
+            "PlanariumMIDI -> PlanariumDomain: direct boundary midi -> domain is forbidden"
+        ])
+    }
+
     func testManifestFixtureRejectsUnclassifiedProductionTargetByName() throws {
         let data = Data(#"""
         {"targets":[{"name":"NewProductionTarget","type":"regular","dependencies":[]}]}
@@ -149,6 +167,7 @@ final class TargetBoundaryTests: XCTestCase {
 private enum ManifestBoundaries {
     private enum Role: String {
         case deviceCore, deviceValues, deviceModel, controlValues, rxTransport, typedTX
+        case musicCore, soundCore, controllerCore, controllerInput
         case domain, clockDSP, audioSupport, runtime, commissioning, input, audio, midi, presets
         case presentation, commissioningControl, setupControl, simulationLink, simulationBroadcast, simulationControl
         case application, scannerUI, monitorApp, setupApp, diagnosticCLI, presetTool, benchmark, benchmarkCLI
@@ -164,8 +183,17 @@ private enum ManifestBoundaries {
     private static let rules: [Rule] = {
         let core: Set<Role> = [.deviceCore]
         let values = core.union([.deviceValues])
-        let domain = values.union([.domain])
-        let runtime = domain.union([.runtime, .clockDSP])
+        // Scanner-free music values: depend on nothing, reachable from everyone.
+        let music: Set<Role> = [.musicCore]
+        // Game controller sources know the music core only; no scanner, no sound host.
+        // The instrument document stores the controller assignments, so Domain may reach them.
+        let controllerSources = music.union([.controllerCore])
+        let domain = values.union(controllerSources).union([.domain])
+        // The sound core: output routing, scheduling, clocks. No device, input,
+        // geometry or document role is reachable from it, nor from audio/MIDI.
+        let sound = music.union([.soundCore, .clockDSP])
+        let controllerInput = controllerSources.union([.controllerInput])
+        let runtime = domain.union(sound).union(controllerSources).union([.runtime])
         let control = values.union([.controlValues])
         let rx = core.union([.rxTransport])
         let tx = rx.union([.typedTX])
@@ -176,10 +204,10 @@ private enum ManifestBoundaries {
         let presentation = input.union(control).union([.presentation])
         let commissioningControl = input.union([.commissioningControl])
         let setup = commissioning.union([.setupControl])
-        let audio = runtime.union([.audio, .audioSupport])
-        let midi = runtime.union([.midi])
+        let audio = sound.union([.audio, .audioSupport])
+        let midi = sound.union([.midi])
         let presets = domain.union(control).union([.presets])
-        let application = audio.union(midi).union(presets).union(presentation).union([.application])
+        let application = audio.union(midi).union(presets).union(presentation).union(controllerInput).union([.application])
         let scannerUI = presentation.union(commissioningControl).union([.scannerUI])
         let simulation = presentation.union([.simulationControl, .simulationLink])
         let benchmark = presentation.union([.benchmark])
@@ -191,14 +219,18 @@ private enum ManifestBoundaries {
             Rule(role: .controlValues, targets: ["SickPLSControlCore"], direct: values, reachable: values),
             Rule(role: .rxTransport, targets: ["SickPLSMacTransport"], direct: core, reachable: core),
             Rule(role: .typedTX, targets: ["SickPLSActiveControl"], direct: rx, reachable: rx),
-            Rule(role: .domain, targets: ["PlanariumDomain"], direct: values, reachable: values),
+            Rule(role: .musicCore, targets: ["PlanariumMusicCore"], direct: [], reachable: []),
+            Rule(role: .domain, targets: ["PlanariumDomain"], direct: values.union(controllerSources), reachable: values.union(controllerSources)),
             Rule(role: .clockDSP, targets: ["PlanariumHostClockDSP"], direct: [], reachable: []),
             Rule(role: .audioSupport, targets: ["PlanariumFadeDSP", "PlanariumObjCCatch"], direct: [], reachable: []),
-            Rule(role: .runtime, targets: ["PlanariumRuntime"], direct: [.domain, .clockDSP], reachable: runtime),
+            Rule(role: .soundCore, targets: ["PlanariumSoundCore"], direct: [.musicCore, .clockDSP], reachable: sound),
+            Rule(role: .controllerCore, targets: ["PlanariumControllerCore"], direct: [.musicCore], reachable: controllerSources),
+            Rule(role: .controllerInput, targets: ["PlanariumControllerInput"], direct: controllerSources, reachable: controllerInput),
+            Rule(role: .runtime, targets: ["PlanariumRuntime"], direct: [.domain, .clockDSP, .soundCore, .controllerCore], reachable: runtime),
             Rule(role: .commissioning, targets: ["SickPLSCommissioning"], direct: values.union(tx), reachable: commissioning),
             Rule(role: .input, targets: ["PlanariumInput"], direct: [.domain, .runtime, .commissioning, .deviceCore, .rxTransport], reachable: input),
-            Rule(role: .audio, targets: ["PlanariumAudio"], direct: [.domain, .runtime, .clockDSP, .audioSupport], reachable: audio),
-            Rule(role: .midi, targets: ["PlanariumMIDI"], direct: [.domain, .runtime], reachable: midi),
+            Rule(role: .audio, targets: ["PlanariumAudio"], direct: [.musicCore, .soundCore, .clockDSP, .audioSupport], reachable: audio),
+            Rule(role: .midi, targets: ["PlanariumMIDI"], direct: [.musicCore, .soundCore], reachable: midi),
             Rule(role: .presets, targets: ["PlanariumPresets"], direct: [.domain, .controlValues], reachable: presets),
             Rule(role: .presentation, targets: ["SickPLSMonitorKit"], direct: [.domain, .controlValues, .deviceCore, .rxTransport], reachable: presentation),
             Rule(role: .commissioningControl, targets: ["SickPLSCommissioningControl"], direct: [.input, .typedTX, .commissioning, .deviceCore, .rxTransport], reachable: commissioningControl),
@@ -206,9 +238,9 @@ private enum ManifestBoundaries {
             Rule(role: .simulationLink, targets: ["SickPLSSimulationLink"], direct: core, reachable: core),
             Rule(role: .simulationBroadcast, targets: ["SickPLSSimulationBroadcast"], direct: [.deviceCore, .deviceModel, .simulationLink], reachable: [.deviceCore, .deviceModel, .simulationLink]),
             Rule(role: .simulationControl, targets: ["SickPLSSimulationControl"], direct: [.input, .commissioning, .deviceCore, .rxTransport, .simulationLink], reachable: simulation),
-            Rule(role: .application, targets: ["PlanariumApplication"], direct: [.audio, .domain, .input, .midi, .runtime, .controlValues, .deviceCore, .rxTransport, .presentation, .presets], reachable: application),
+            Rule(role: .application, targets: ["PlanariumApplication"], direct: [.audio, .controllerInput, .domain, .input, .midi, .runtime, .controlValues, .deviceCore, .rxTransport, .presentation, .presets], reachable: application),
             Rule(role: .scannerUI, targets: ["PlanariumScannerUI"], direct: [.input, .commissioning, .commissioningControl, .controlValues, .deviceCore, .rxTransport, .presentation], reachable: scannerUI),
-            Rule(role: .monitorApp, targets: ["SickPLSMonitor"], direct: [.application, .audio, .domain, .input, .midi, .presets, .runtime, .scannerUI, .commissioning, .commissioningControl, .controlValues, .deviceCore, .rxTransport, .presentation, .setupControl, .simulationControl, .simulationLink], reachable: application.union(scannerUI).union(setup).union(simulation)),
+            Rule(role: .monitorApp, targets: ["SickPLSMonitor"], direct: [.application, .audio, .controllerInput, .domain, .input, .midi, .presets, .runtime, .scannerUI, .commissioning, .commissioningControl, .controlValues, .deviceCore, .rxTransport, .presentation, .setupControl, .simulationControl, .simulationLink], reachable: application.union(scannerUI).union(setup).union(simulation)),
             Rule(role: .setupApp, targets: ["SickPLSSetup"], direct: [.typedTX, .commissioning, .deviceCore, .rxTransport, .setupControl], reachable: setup),
             Rule(role: .diagnosticCLI, targets: ["SickPLSDiagnosticCLI"], direct: tx, reachable: tx),
             Rule(role: .presetTool, targets: ["PlanariumPresetTool"], direct: [.domain, .presets, .controlValues], reachable: presets),

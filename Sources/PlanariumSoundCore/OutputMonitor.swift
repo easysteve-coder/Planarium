@@ -1,5 +1,5 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 
 /// Numeric receipts only. Storage is allocated with the port, never in record().
 /// The port and this value are exclusively owned by Runtime Q.
@@ -20,9 +20,10 @@ public struct OutputMonitorSnapshot: Equatable, Sendable {
     public let programs: [UInt8]
     public let events: [OutputMonitorEvent]
 }
-struct OutputMonitorStorage: Sendable {
-    var enabled = false
-    private(set) var generation: UInt64 = 0
+package struct OutputMonitorStorage: Sendable {
+    package init() {}
+    package var enabled = false
+    package private(set) var generation: UInt64 = 0
     private var notes = Array(repeating: UInt8(0), count: 16 * 128)
     private var controllers = Array(repeating: UInt8(255), count: 16 * 128)
     private var bends = Array(repeating: UInt16(8192), count: 16)
@@ -31,7 +32,7 @@ struct OutputMonitorStorage: Sendable {
     private var ring = Array(repeating: OutputMonitorEvent(), count: 200)
     private var head = 0
     private var count = 0
-    mutating func record(status: UInt8, number: UInt8, value: UInt16) {
+    package mutating func record(status: UInt8, number: UInt8, value: UInt16) {
         guard enabled else { return }
         let channel = Int(status & 15), index = Int(status & 15) * 128 + Int(number & 127)
         switch status & 0xF0 {
@@ -51,7 +52,7 @@ struct OutputMonitorStorage: Sendable {
         ring[head] = .init(sequence: generation, status: status, number: number, value: value)
         head = (head + 1) % ring.count; count = min(count + 1, ring.count)
     }
-    func snapshot(id: UUID, destination: SpatialOutputDestination) -> OutputMonitorSnapshot? {
+    package func snapshot(id: UUID, destination: SpatialOutputDestination) -> OutputMonitorSnapshot? {
         guard enabled else { return nil }
         // Independent buffers keep the Q tables uniquely referenced across UI frames.
         return .init(portID: id, destination: destination, generation: generation,

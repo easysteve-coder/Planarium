@@ -79,6 +79,8 @@ public struct PresetReading {
                 next.channel.pan = Double(channel.pan)
                 next.channel.levelDecibels = max(-120, 20 * log10(max(0.000001, Double(settings.masterGain))))
             }
+            // Legacy formats carry no controller assignments; the preset replaces the instrument.
+            next.controller = .empty
             next = try LegacyChannelMigration.applying(to: next)
             if !includesChannel { next.channels = live.channels; next.masterLevelDecibels = live.masterLevelDecibels }
         }

@@ -61,7 +61,7 @@ private struct MixerPresetDocument: Codable {
         self.document = document; self.includesChannel = includesChannel
     }
     private enum CodingKeys: String, CodingKey {
-        case spatial, detection, roomFilter, revision, editorGrid, channels, masterLevelDecibels, midiTarget, scenes, currentSceneID, beatsPerMinute
+        case spatial, detection, roomFilter, revision, editorGrid, channels, masterLevelDecibels, midiTarget, scenes, currentSceneID, beatsPerMinute, controller
     }
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -78,6 +78,8 @@ private struct MixerPresetDocument: Codable {
             midiTarget: try values.decodeIfPresent(InstrumentMIDITarget.self, forKey: .midiTarget))
         try LegacyLatticeMigration.validateEditorGrid(document.editorGrid)
         document.beatsPerMinute = try values.decodeIfPresent(Double.self, forKey: .beatsPerMinute) ?? 120
+        // Game controller assignments travel with full presets and templates; old presets have none.
+        document.controller = try values.decodeIfPresent(ControllerLayout.self, forKey: .controller) ?? .empty
     }
     func encode(to encoder: Encoder) throws {
         if includesChannel { try document.encode(to: encoder); return }
@@ -89,6 +91,7 @@ private struct MixerPresetDocument: Codable {
         if !document.scenes.isEmpty { try values.encode(document.scenes, forKey: .scenes) }
         try values.encodeIfPresent(document.currentSceneID, forKey: .currentSceneID)
         if document.beatsPerMinute != 120 { try values.encode(document.beatsPerMinute, forKey: .beatsPerMinute) }
+        if document.controller != .empty { try values.encode(document.controller, forKey: .controller) }
     }
 }
 
@@ -122,6 +125,7 @@ public enum PresetV6Codec {
     static func validate(_ preset: InstrumentPresetV6) throws {
         guard preset.summary.count <= InstrumentPresetV6.maximumSummaryCharacters else { throw PresetDocumentReadError.summaryTooLong }
         _ = try InstrumentCompiler.compile(preset.document)
+        try preset.document.validateController()
         if let viewport = preset.viewport { _ = try viewport.validated() }
         for strip in preset.document.channels {
             guard strip.id != LegacyChannelMigration.missingID else { throw PresetDocumentReadError.decodingFailed("reservedChannelID") }

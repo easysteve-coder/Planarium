@@ -51,6 +51,74 @@ unbekannter Produktionsziele und Fehlschlag-Fixtures. Lokaler Prüfbefehl:
 läuft derselbe Test durch `scripts/suite-summary.sh` ohne Argumente.
 Import-/RX-/TX-Quellprüfungen ergänzen den Paketgraphen.
 
+**Soundkern ohne Scanner (KERN-TRENNUNG, 18.11.2026).** `PlanariumMusicCore` (nur
+Foundation) hält die Musik- und Ausgabewerte: Routingziele und Wertprogramme, Szenen,
+Farben, Pitch/Tempo/Arpeggiator/AU-Identität, Kanalzüge, `MusicEvent`, die Auswertung
+`RoutingEvaluation<Cell>` und den Notenbesitz `NoteLedger<Cell>`. `PlanariumSoundCore`
+hält Router, Ports, Notenplanung, Uhren und Arpeggios; Audio Units an ihn bindet
+`OutputPortHost`. `PlanariumAudio` und `PlanariumMIDI` hängen nur an diesen beiden.
+Jede Eingangsquelle liefert ihre Aktivierungsidentität als `LedgerCell`; die einzige
+geometrische Frage des Ledgers (setzt ein Nachbar den gehaltenen Kontakt fort?) beantwortet
+die Quelle, der Scanner mit `PolarDeviceLattice` (eine Handbreite, 10 cm). Domain und
+Runtime re-exportieren die Kernmodule. Wächter: Rollen `musicCore`/`soundCore` in
+`ManifestBoundaries`, Gegenfixture „MIDI über Domain“, Import-Erlaubnisliste
+(`DomainBoundaryContractTests.testSoundModulesImportOnlyAllowedModules`). Beleg der
+Bitgleichheit: Randpunkte-Replay-Digest modulneutral (Typnamen ohne Modul), alter und neuer
+Stand liefern denselben Wert.
+
+**Gamecontroller als zweite Spielquelle (CONTROLLER, 18.11.2026).** Vertrag (Owner 18.11., Konzept
+`.agent_handoff/konzept-controller.md` §0):
+
+- Eine App, Scanner und Controller (zuerst PS5 DualSense) gleichzeitig spielbar.
+  `PlanariumControllerCore` hängt nur am Musikkern, `PlanariumControllerInput` ist der einzige
+  Gerätebesitzer (GameController, nur Empfang; die Lightbar-Farbe ist die einzige Ausgabe ans Pad).
+- **Exklusiver Besitz je Ziel und Klasse.** Ziel ist ein AU-Kanalzug (ganzes Instrument) oder
+  MIDI-Endpunkt + Kanal; die Summenausgabe und ihr expliziter Endpunkt sind dasselbe Ziel.
+  Klasse *Noten* = Note on/off, Anschlag, Halten, Programmwechsel, Bank (CC0/32), Kanalmodus
+  (CC120–127); Klasse *Regler* = übrige CCs inkl. Sustain, Pitch Bend, Aftertouch. Der Scanner
+  (Instrument) besitzt seine Ziele zuerst; eine Controllerzuweisung auf ein besetztes Ziel/Klasse
+  bleibt stumm und wird im Inspector gemeldet (`CompiledControllerLayout.conflicts`).
+- **Lösematrix je Quelle.** Controller-Trennung/Neuverbindung löst nur Controllernoten und setzt nur
+  eigene Regler zurück (CC64/CC1 → 0, Bend → Mitte, Druck → 0; kein kanalweites All-Notes-Off).
+  Scannerverlust, Rückstau und Sitzungswechsel setzen die Reglerkanäle des Controllers nicht zurück
+  (`OutputRouter.releaseControllers(sparing:)`). Panic, Benutzerstopp, Schlaf, Beenden und ein neues
+  Preset (neue Sitzung) lösen beide Quellen. Nach Panic bleibt ein noch gehaltenes Element stumm, bis
+  es losgelassen wurde. Der Router gleicht jeden Port gegen die Vereinigung beider Klangbestände ab.
+- **Regler folgen ihrem Element:** solange es gespielt wird, wird gesendet; beim Loslassen kehrt ein
+  geschalteter Regler (Konstante) auf 0 zurück (Sustain-Taste: 127 → 0), ein stufenloser auf seinen
+  Ruhewert (Trigger oben, Stick/Touch mittig). Sendebelege führen das wirklich benutzte Ziel
+  (Endpunkt/Kanalzug), Rücksetzungen gehen genau dorthin.
+- **Kein Anschlag ohne neue Kante:** Was in der ersten Meldung einer Verbindung, nach Panic, nach
+  einer Audio-Freigabe oder bei einer neuen/geänderten Zuweisung schon gehalten ist, bleibt stumm bis
+  zum Loslassen. Ein Layoutwechsel löst entfernte, geänderte oder neu verweigerte Zuweisungen am alten
+  Ziel (Noten, Hold, Toggle, Regler), bevor das neue Layout gilt; unveränderte klingen weiter.
+- **Audio-Freigaben** (Kanalzug lösen, Audio-Neukonfiguration) erreichen auch den Controller-Ledger;
+  seine MIDI-Noten bleiben. Arpeggios gehören der Quelle, der die Noten ihres Kanalzugs gehören;
+  scannerlokale Abbrüche (Sitzungsende, Rückstau, Szenenwechsel) lassen Pad-Arpeggios laufen.
+- **Kompilierer:** Ziel und Programm müssen dieselbe Nachrichtenart meinen (Noten → Notenziel,
+  Programmwechsel → PC-Ziel, Konstante/stufenlos → CC/Bend/Druck/AU-Parameter); Kanal ≤ 16,
+  CC ≤ 127, Noten und Anschlag im MIDI-Bereich. Ebenen-/Szenensteuerung und MIDI-Effektparameter sind
+  vom Controller aus nicht spielbar und werden abgelehnt. Mehrere Zuweisungen auf derselben Note
+  teilen sie physisch (endet mit der letzten).
+- **Eingangsgrenze:** Controllermeldungen werden nie ausgedünnt (jede angenommene Kante klingt in
+  Reihenfolge). Über `controllerBacklogLimit` (512 Meldungen ≈ 2 s) werden weitere abgewiesen und
+  genau eine quellenlokale Überlastfreigabe folgt (wie Panic, nur Controller): nichts klingt weiter,
+  Gehaltenes bleibt bis zum Loslassen stumm; ein abgewiesener Druck ist verloren, nie hängend.
+- **Besitzwechsel atomar:** Scannerplan und der gegen ihn kompilierte Controllerplan gehen als ein
+  Runtime-Befehl (`install(_:controller:)`); alte Pad-Besitzer werden an ihren alten Zielen gelöst,
+  bevor irgendetwas des neuen Scannerplans klingt. Audio-Freigaben erfassen auch ausklingende
+  Overlap-Töne und setzen die Regler des Controllers am betroffenen Kanalzug zurück.
+- **Darstellung** auf nativer Live-Ebene (`LiveLayerView`); Gerätemeldungen und Mausbewegung zeichnen
+  nur diese Ebene neu, die SwiftUI-Bühne wird dabei nicht ausgewertet (Test
+  `testPadMovementRedrawsTheNativeLayerOnly`).
+- **Simulation** auf der Bühne nutzt denselben Weg wie das Gerät (`simulateController`, mit dem
+  Gerätezustand vereinigt); Gate/Note-Off stammen nie aus Prognose.
+- **Persistenz:** `InstrumentDocument.controller`, in Vollpreset und Vorlage (V6/V7-Container), nur
+  geschrieben, wenn nicht leer (bestehende Presets bytegleich), beim Lesen validiert; Altformate
+  bringen keine Zuweisungen. Änderungen sind Undo-Schritte.
+- Offene Verifikation: echter DualSense-Lauf (Bluetooth/USB, Lightbar, Touchpad-Nullpunkt, Latenz)
+  am Owner-Gerät mit Protokoll; Adaptive Trigger und Gyro sind vorgemerkte Ideen, nicht gebaut.
+
 | Zustand | Verbindlicher Besitzer / Leser | Thread und Übernahme | Persistenz / History |
 | --- | --- | --- | --- |
 | Dokument / Revision | `SpatialInstrumentRuntimeModel`; Canvas, Presets, Compiler lesen | MainActor; `commit` validiert und kompiliert oder verwendet den kompatiblen Index vor `install`; Compilat auf Q erst nach Install-Befehl gültig | Presetinhalt; Revision ist keine Dateiidentität |

@@ -103,6 +103,38 @@ final class ArpeggiatorTests: RuntimeTestCase {
             XCTAssertEqual(au.entries.count, ended)
         } }
     }
+    /// Codex review 18.11. (5): the pad owns the strip's notes, so its arpeggio
+    /// survives a scanner session end and a scanner backlog stop.
+    func testScannerSessionEndKeepsThePadsArpeggio() throws {
+        let clock = FakeClock(), au = SampleBoundaryFake()
+        let runtime = PerformanceRuntime(clock: clock, mailbox: .init(), noteClock: clock)
+        runtime.attach(RuntimePorts.audioUnit(boundary: au))
+        var doc = try document(90, effects: [.init(arpeggiator: .init())])
+        // The scanner layer plays MIDI only; the strip's notes belong to the pad.
+        doc.spatial = try doc.spatial.replacingLayers(doc.spatial.layers.map { layer in
+            SpatialDocumentLayer(id: layer.id, name: layer.name, color: layer.color, isVisible: true, isActive: true, isLocked: false, isSoloed: false,
+                                 cells: layer.cells, routings: layer.routings.filter { $0.target.destination == .midi }, cellOverrides: [:])
+        })
+        let compiled = try InstrumentCompiler.compile(doc)
+        runtime.install(compiled)
+        let pad = ControllerAssignment(name: "Pad", color: .blue, element: .cross,
+            routing: .init(target: .audioUnitNote(channel: 0, stripID: InstrumentChannel.legacyID), program: .chord(notes: [60, 64, 67], velocity: 90, transition: .retrigger)))
+        runtime.installController(try CompiledControllerLayout(.init(assignments: [pad]), source: .controller(0), sumEndpoint: nil, established: compiled.outputClaims()))
+        runtime.sessionBegan(session); runtime.frame(frame(90))
+        runtime.simulateController(.init(pressed: [.cross])); flush(runtime)
+        clock.advance(10.1); flush(runtime)
+        let running = au.entries.count
+        XCTAssertGreaterThan(running, 0, "the pad's chord drives the arpeggio")
+        runtime.sessionEnded(session, reason: .userRequested); flush(runtime)
+        clock.advance(10.4); flush(runtime)
+        XCTAssertGreaterThan(au.entries.count, running, "the scanner's end does not stop the pad's arpeggio")
+        let beforeStop = au.entries.count
+        runtime.stop(); flush(runtime)
+        let stopped = au.entries.count
+        clock.advance(10.8); flush(runtime)
+        XCTAssertEqual(au.entries.count, stopped, "a user stop ends both sources")
+        XCTAssertGreaterThanOrEqual(stopped, beforeStop)
+    }
     func testRealAbortTransitionsInvalidateAndNeverRestartFromOldLedger() throws {
         for count in [90, 361] {
             for reason in ["panic", "stop", "sleep", "terminate", "preset", "chain", "bypass", "engine", "scene"] {

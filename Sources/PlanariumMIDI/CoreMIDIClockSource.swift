@@ -1,7 +1,7 @@
 import CoreMIDI
 import Darwin
 import Foundation
-import PlanariumRuntime
+import PlanariumSoundCore
 
 /// CoreMIDI copies timestamped bytes into immutable callbacks without Main.
 /// Clock mode filters realtime bytes; footswitch mode preserves channel messages.

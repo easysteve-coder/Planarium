@@ -89,10 +89,12 @@ private extension SpatialValueProgram {
 extension SpatialRouting {
     init(from decoder: Decoder, counter: inout SpatialDocumentBudgetCounter) throws {
         let values = try decoder.container(keyedBy: SpatialValueCodingKey.self)
-        id = try values.decode(UUID.self, forKey: SpatialValueCodingKey(stringValue: "id")!)
-        target = try values.decode(SpatialRoutingTarget.self, forKey: SpatialValueCodingKey(stringValue: "target")!)
-        chordRootMIDINote = try values.decodeIfPresent(Int.self, forKey: SpatialValueCodingKey(stringValue: "chordRootMIDINote")!)
-        program = try SpatialValueProgram(from: values.superDecoder(forKey: SpatialValueCodingKey(stringValue: "program")!), counter: &counter)
+        // Cross-module extension (the type lives in PlanariumMusicCore): delegate to its init.
+        let id = try values.decode(UUID.self, forKey: SpatialValueCodingKey(stringValue: "id")!)
+        let target = try values.decode(SpatialRoutingTarget.self, forKey: SpatialValueCodingKey(stringValue: "target")!)
+        let chordRootMIDINote = try values.decodeIfPresent(Int.self, forKey: SpatialValueCodingKey(stringValue: "chordRootMIDINote")!)
+        let program = try SpatialValueProgram(from: values.superDecoder(forKey: SpatialValueCodingKey(stringValue: "program")!), counter: &counter)
+        self.init(id: id, target: target, program: program, chordRootMIDINote: chordRootMIDINote)
     }
 }
 
@@ -150,8 +152,8 @@ private extension SpatialCellValue {
 extension SpatialCellAction {
     init(from decoder: Decoder, counter: inout SpatialDocumentBudgetCounter) throws {
         let values = try decoder.container(keyedBy: ActionCodingKeys.self)
-        target = try values.decode(SpatialRoutingTarget.self, forKey: .target)
-        value = try SpatialCellValue(from: values.superDecoder(forKey: .value), counter: &counter)
+        let target = try values.decode(SpatialRoutingTarget.self, forKey: .target)
+        self.init(target: target, value: try SpatialCellValue(from: values.superDecoder(forKey: .value), counter: &counter))
     }
 
     private enum ActionCodingKeys: String, CodingKey { case target, value }

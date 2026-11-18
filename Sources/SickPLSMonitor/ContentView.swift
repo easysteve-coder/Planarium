@@ -172,6 +172,7 @@ struct MeasurementPane: View {
     @ObservedObject var workspace: WorkspaceControlModel
     var cellPasteboard: NSPasteboard = .general
     @State private var cells = SpatialActiveCellDisplayModel()
+    @AppStorage("planarium.stageSource") private var stageSource = StageSourceChoice.scanner.rawValue
     var body: some View {
         let _ = ViewEvaluationProbe.current?.record("measurement")
         VStack(alignment: .leading, spacing: 8) {
@@ -188,7 +189,7 @@ struct MeasurementPane: View {
                     .accessibilityIdentifier("field.toolbar")
                 DeviceFieldEditorView(model: workspace.deviceFields)
             } else {
-                instrumentField
+                stage
             }
             RuntimeInputBacklogNotice(display: display)
         }
@@ -199,6 +200,22 @@ struct MeasurementPane: View {
         }
         .onAppear { ViewEvaluationProbe.current?.record("measurementAppear"); display.start() }
         .onDisappear { ViewEvaluationProbe.current?.record("measurementDisappear"); display.stop() }
+    }
+    private var source: StageSourceChoice { StageSourceChoice(rawValue: stageSource) ?? .scanner }
+    /// Switched in the header (`StageSourcePicker`); it takes no field height.
+    @ViewBuilder private var stage: some View {
+        switch source {
+        case .scanner: instrumentField
+        case .controller: controllerStage
+        case .both:
+            HStack(spacing: 8) {
+                instrumentField
+                controllerStage.frame(minWidth: 280, idealWidth: 380, maxWidth: 520)
+            }
+        }
+    }
+    private var controllerStage: some View {
+        ControllerStageView(display: display, instrument: instrument, stage: instrument.controllerStage, editable: workspace.mode == .edit)
     }
     private var instrumentField: some View {
         DeviceFieldInstrumentView(instrument: instrument, cells: cells, simulation: simulation,
@@ -263,6 +280,27 @@ private struct DeviceFieldModeBar: View {
                 workspace.mode == .edit ? fields.drafts.showInEdit : fields.drafts.showInPerformance
             }, set: { show in fields.update { if workspace.mode == .edit { $0.showInEdit = show } else { $0.showInPerformance = show } } }))
                 .font(.caption)
+        }
+    }
+}
+
+/// Scanner, game controller or both in the stage centre. Lives in the header
+/// next to the area switches, in their style; available in Perform too.
+struct StageSourcePicker: View {
+    @AppStorage("planarium.stageSource") private var stored = StageSourceChoice.scanner.rawValue
+    var body: some View {
+        let selection = StageSourceChoice(rawValue: stored) ?? .scanner
+        HStack(spacing: 4) {
+            ForEach(StageSourceChoice.allCases, id: \.self) { choice in
+                Button { stored = choice.rawValue } label: {
+                    FieldToolbarIconLabel(title: choice.caption, symbol: choice.symbol)
+                        .frame(width: 36).frame(minHeight: 24)
+                        .background(selection == choice ? StageTheme.amber.opacity(0.22) : .clear)
+                        .cornerRadius(4)
+                        .contentShape(Rectangle())
+                }.buttonStyle(.plain).help(choice.title).iconAccessibility(choice.title, caption: choice.caption)
+                .accessibilityIdentifier("stage.source.\(choice.rawValue)")
+            }
         }
     }
 }

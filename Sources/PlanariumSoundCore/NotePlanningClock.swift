@@ -5,7 +5,7 @@ import Foundation
 /// Dedicated deadline source. Its bounded queue is allocated before the
 /// thread starts. Only queue access takes its lock; no render code uses it.
 /// Callbacks execute on Q, including synthetic clocks used by tests.
-final class NotePlanningClock: RuntimeClock, @unchecked Sendable {
+package final class NotePlanningClock: RuntimeClock, @unchecked Sendable {
     private final class Jobs: @unchecked Sendable {
         struct Job {
             let id: UInt64
@@ -30,7 +30,7 @@ final class NotePlanningClock: RuntimeClock, @unchecked Sendable {
     }
     private let jobs = Jobs()
     private let thread: Thread
-    init() {
+    package init() {
         let jobs = self.jobs
         thread = Thread {
             var base = mach_timebase_info_data_t(); mach_timebase_info(&base)
@@ -65,20 +65,20 @@ final class NotePlanningClock: RuntimeClock, @unchecked Sendable {
         }
         thread.name = "Planarium note deadlines"
     }
-    var policyResult: Int32? {
+    package var policyResult: Int32? {
         os_unfair_lock_lock(jobs.lock); defer { os_unfair_lock_unlock(jobs.lock) }; return jobs.policyResult
     }
     /// Internal diagnostic, read by tests only; counts completed waits, not polling.
-    var wakeCount: UInt64 {
+    package var wakeCount: UInt64 {
         os_unfair_lock_lock(jobs.lock); defer { os_unfair_lock_unlock(jobs.lock) }; return jobs.iterations
     }
-    var sourceCreationCount: Int {
+    package var sourceCreationCount: Int {
         os_unfair_lock_lock(jobs.lock); defer { os_unfair_lock_unlock(jobs.lock) }; return jobs.sourceCreations
     }
-    var now: Double { Double(DispatchTime.now().uptimeNanoseconds) / 1e9 }
+    package var now: Double { Double(DispatchTime.now().uptimeNanoseconds) / 1e9 }
     /// Bounded admission. Runtime treats rejection as cancellation of all its
     /// planned owners; no deadline callback is silently lost.
-    func trySchedule(at deadline: Double, on queue: DispatchQueue,
+    package func trySchedule(at deadline: Double, on queue: DispatchQueue,
                      _ action: @escaping @Sendable () -> Void) -> RuntimeCancellation? {
         os_unfair_lock_lock(jobs.lock)
         guard let index = jobs.slots.firstIndex(where: { $0 == nil }), !jobs.stopped else {
@@ -124,7 +124,7 @@ final class NotePlanningClock: RuntimeClock, @unchecked Sendable {
             if job != nil { jobs.wake.signal() }
         }
     }
-    func schedule(at deadline: Double, on queue: DispatchQueue,
+    package func schedule(at deadline: Double, on queue: DispatchQueue,
                   _ action: @escaping @Sendable () -> Void) -> RuntimeCancellation {
         // Protocol compatibility: rejected admission is inert. Production uses
         // trySchedule and explicitly releases owners on rejection.

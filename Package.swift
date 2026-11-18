@@ -18,7 +18,10 @@ let package = Package(
         .library(name: "SickPLSSimulationBroadcast", targets: ["SickPLSSimulationBroadcast"]),
         .library(name: "SickPLSSimulationControl", targets: ["SickPLSSimulationControl"]),
         .library(name: "SickPLSActiveControl", targets: ["SickPLSActiveControl"]),
+        .library(name: "PlanariumMusicCore", targets: ["PlanariumMusicCore"]),
+        .library(name: "PlanariumControllerCore", targets: ["PlanariumControllerCore"]),
         .library(name: "PlanariumDomain", targets: ["PlanariumDomain"]),
+        .library(name: "PlanariumSoundCore", targets: ["PlanariumSoundCore"]),
         .library(name: "PlanariumRuntime", targets: ["PlanariumRuntime"]),
         .library(name: "PlanariumAudio", targets: ["PlanariumAudio"]),
         .library(name: "SickPLSMonitorKit", targets: ["SickPLSMonitorKit"]),
@@ -69,18 +72,28 @@ let package = Package(
         .testTarget(name: "PlanariumScannerUITests", dependencies: ["PlanariumApplication", "PlanariumAudio", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumPresets", "PlanariumRuntime", "PlanariumScannerUI", "SickPLSActiveControl", "SickPLSCommissioning", "SickPLSCommissioningControl", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit", "SickPLSSimulationControl", "SickPLSSimulationLink"], path: "Tests/SickPLSPerformanceSessionTests"),
         .testTarget(name: "PlanariumPresetValuesTests", dependencies: ["LegacyPresetTestSupport", "PlanariumDomain", "PlanariumPresets"], path: "Tests/SickSynthAudioTests"),
         .testTarget(name: "PitchDomainTests", dependencies: ["PlanariumDomain"], path: "Tests/SickThereminControlTests"),
-        .testTarget(name: "PlanariumMIDIContractTests", dependencies: ["PlanariumMIDI"], path: "Tests/SickCoreMIDIOutputTests"),
+        .testTarget(name: "PlanariumMIDIContractTests", dependencies: ["PlanariumDomain", "PlanariumMIDI", "PlanariumRuntime"], path: "Tests/SickCoreMIDIOutputTests"),
         .testTarget(name: "PlanariumApplicationTests", dependencies: ["PlanariumApplication", "PlanariumAudio", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumRuntime", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit", "PlanariumPresets"]),
-        .target(name: "PlanariumDomain", dependencies: ["PLSDeviceValues", "SickPLSCore"]),
+        // Scanner-free music and output values (no device, transport or geometry).
+        .target(name: "PlanariumMusicCore"),
+        .target(name: "PlanariumDomain", dependencies: ["PLSDeviceValues", "PlanariumControllerCore", "PlanariumMusicCore", "SickPLSCore"]),
+        // Game controllers as playing sources: elements, assignments, their own note ledger.
+        .target(name: "PlanariumControllerCore", dependencies: ["PlanariumMusicCore"]),
+        // The one game controller device owner (GameController framework, RX only).
+        .target(name: "PlanariumControllerInput", dependencies: ["PlanariumControllerCore", "PlanariumMusicCore"],
+                linkerSettings: [.linkedFramework("GameController")]),
+        .testTarget(name: "PlanariumControllerCoreTests", dependencies: ["PlanariumControllerCore", "PlanariumMusicCore"]),
         .target(name: "PlanariumHostClockDSP"),
-        .target(name: "PlanariumRuntime", dependencies: ["PlanariumDomain", "PlanariumHostClockDSP"]),
+        // Scanner-free output routing, note scheduling, clocks and arpeggios.
+        .target(name: "PlanariumSoundCore", dependencies: ["PlanariumHostClockDSP", "PlanariumMusicCore"]),
+        .target(name: "PlanariumRuntime", dependencies: ["PlanariumControllerCore", "PlanariumDomain", "PlanariumHostClockDSP", "PlanariumSoundCore"]),
         .target(name: "PlanariumInput", dependencies: ["PlanariumDomain", "PlanariumRuntime", "SickPLSCommissioning", "SickPLSCore", "SickPLSMacTransport"]),
         .target(name: "PlanariumScannerUI", dependencies: ["PlanariumInput", "SickPLSCommissioning", "SickPLSCommissioningControl", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit"]),
-        .target(name: "PlanariumMIDI", dependencies: ["PlanariumDomain", "PlanariumRuntime"]),
-        .target(name: "PlanariumApplication", dependencies: ["PlanariumAudio", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumRuntime", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit", "PlanariumPresets"]),
+        .target(name: "PlanariumMIDI", dependencies: ["PlanariumMusicCore", "PlanariumSoundCore"]),
+        .target(name: "PlanariumApplication", dependencies: ["PlanariumAudio", "PlanariumControllerInput", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumRuntime", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit", "PlanariumPresets"]),
         .target(name: "PlanariumFadeDSP"),
         .target(name: "PlanariumObjCCatch"),
-        .target(name: "PlanariumAudio", dependencies: ["PlanariumDomain", "PlanariumFadeDSP", "PlanariumObjCCatch", "PlanariumRuntime", "PlanariumHostClockDSP"]),
+        .target(name: "PlanariumAudio", dependencies: ["PlanariumFadeDSP", "PlanariumHostClockDSP", "PlanariumMusicCore", "PlanariumObjCCatch", "PlanariumSoundCore"]),
         .testTarget(name: "PlanariumAudioTests", dependencies: ["PlanariumAudio", "PlanariumDomain", "PlanariumFadeDSP", "PlanariumRuntime", "PlanariumMIDI"]),
         .testTarget(name: "PlanariumRuntimeTests", dependencies: ["PlanariumDomain", "PlanariumRuntime", "SickPLSControlCore"]),
         .testTarget(name: "PlanariumDomainTests", dependencies: ["PlanariumDomain", "SickPLSControlCore", "SickPLSCore", "SickPLSMonitorKit", "SickPLSSimulationLink"]),
@@ -97,7 +110,7 @@ let package = Package(
             dependencies: ["SickPLSControlCore", "SickPLSCore", "SickPLSMonitorKit", "SickPolarBenchmark"]
         ),
 
-        .executableTarget(name: "SickPLSMonitor", dependencies: ["PlanariumApplication", "PlanariumAudio", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumPresets", "PlanariumRuntime", "PlanariumScannerUI", "SickPLSCommissioning", "SickPLSCommissioningControl", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit", "SickPLSSetupControl", "SickPLSSimulationControl", "SickPLSSimulationLink"]),
+        .executableTarget(name: "SickPLSMonitor", dependencies: ["PlanariumApplication", "PlanariumAudio", "PlanariumControllerInput", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumPresets", "PlanariumRuntime", "PlanariumScannerUI", "SickPLSCommissioning", "SickPLSCommissioningControl", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitorKit", "SickPLSSetupControl", "SickPLSSimulationControl", "SickPLSSimulationLink"]),
         // Kleiner, eigenständiger Diagnosehelfer für den belegten
         // 9600→38400→MMK-Ablauf. Er besitzt keine Audio-, MIDI-,
         // Zonen- oder Performance-Abhängigkeit und sendet nie ohne
@@ -115,7 +128,7 @@ let package = Package(
         ),
         .testTarget(
             name: "SickPLSMonitorTests",
-            dependencies: ["PlanariumApplication", "PlanariumAudio", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumPresets", "PlanariumRuntime", "PlanariumScannerUI", "SickPLSCommissioning", "SickPLSCommissioningControl", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitor", "SickPLSMonitorKit", "SickPLSSetupControl", "SickPLSSimulationControl", "SickPLSSimulationLink"],
+            dependencies: ["PlanariumApplication", "PlanariumAudio", "PlanariumControllerCore", "PlanariumDomain", "PlanariumInput", "PlanariumMIDI", "PlanariumPresets", "PlanariumRuntime", "PlanariumScannerUI", "SickPLSCommissioning", "SickPLSCommissioningControl", "SickPLSControlCore", "SickPLSCore", "SickPLSMacTransport", "SickPLSMonitor", "SickPLSMonitorKit", "SickPLSSetupControl", "SickPLSSimulationControl", "SickPLSSimulationLink"],
             exclude: ["Fixtures"]
         ),
         .target(

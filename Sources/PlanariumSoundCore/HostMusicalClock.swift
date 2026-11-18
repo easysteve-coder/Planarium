@@ -1,5 +1,5 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 import PlanariumHostClockDSP
 
 /// Single control-side musical timeline. The control lock serializes Send,
@@ -23,11 +23,11 @@ public final class HostMusicalClock: @unchecked Sendable {
     deinit { planarium_host_clock_destroy(storage) }
     // Registration and removal are control-side. The source is allocated once;
     // tempo publication only adds data, with no per-tick callback allocation.
-    func addTempoWake(_ source: DispatchSourceUserDataAdd) -> UUID {
+    package func addTempoWake(_ source: DispatchSourceUserDataAdd) -> UUID {
         lock.lock(); defer { lock.unlock() }
         let id = UUID(); tempoWakes[id] = source; return id
     }
-    func removeTempoWake(_ id: UUID) {
+    package func removeTempoWake(_ id: UUID) {
         lock.lock(); defer { lock.unlock() }; tempoWakes.removeValue(forKey: id)
     }
     private func wakeTempoReaders() { for source in tempoWakes.values { source.add(data: 1) } }

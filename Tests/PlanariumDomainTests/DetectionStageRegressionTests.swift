@@ -273,8 +273,13 @@ final class DetectionStageRegressionTests: XCTestCase {
             }
         }
         XCTAssertGreaterThan(eventCount, 100)
-        let hash = SHA256.hash(data: Data(evidence.utf8)).map { String(format: "%02x", $0) }.joined()
+        // Event descriptions carry module-qualified type names; the digest freezes
+        // the music, not the module a type lives in. Under the former single
+        // PlanariumDomain module this evidence hashed to f3292dc9…f157a6
+        // (checked on 18.11.2026 when the music values moved to PlanariumMusicCore).
+        let neutral = evidence.replacingOccurrences(of: #"Planarium[A-Za-z]+\."#, with: "", options: .regularExpression)
+        let hash = SHA256.hash(data: Data(neutral.utf8)).map { String(format: "%02x", $0) }.joined()
         print("RANDPUNKTE replay digest \(hash), events \(eventCount)")
-        XCTAssertEqual(hash, "f3292dc9074649d07f92b6fc1b3034494b4307400c0d27d8bbd100ee58f157a6")
+        XCTAssertEqual(hash, "e1bf939f9af9cdadeee22a81f7cd25ec2d28f589f200530a23f3d8452093ab39")
     }
 }

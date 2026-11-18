@@ -1,7 +1,7 @@
 import AppKit
 import AVFoundation
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 
 public struct PluginLoadError: Error, Equatable, Sendable {
     public let message: String
@@ -109,8 +109,8 @@ public struct AudioGraphConnectionResult: Sendable {
 
 /// Production adapter, asynchronous in both directions. No Main/Q waits.
 @MainActor public final class PerformanceAudioPort: AudioRuntimeBoundary {
-    private let runtime: PerformanceRuntime
-    public init(runtime: PerformanceRuntime) { self.runtime = runtime }
+    private let runtime: any OutputPortHost
+    public init(runtime: any OutputPortHost) { self.runtime = runtime }
     public func attach(id: UUID, schedule: any AUScheduleBoundary) {
         runtime.attach(RuntimePorts.audioUnit(id: id, boundary: schedule))
     }

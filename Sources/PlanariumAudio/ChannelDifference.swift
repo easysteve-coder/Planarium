@@ -1,5 +1,5 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 
 public enum ChannelSlot: Hashable, Sendable {
     case instrument

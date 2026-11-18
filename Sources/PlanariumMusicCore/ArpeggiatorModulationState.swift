@@ -14,7 +14,7 @@ public struct ArpeggiatorModulationState: Equatable, Sendable {
         for entry in entries { result[entry.target] = entry.value }
         return result
     }
-    mutating func update(_ evaluations: [SpatialRoutingEvaluation]) {
+    package mutating func update<Cell: LedgerCell>(_ evaluations: [RoutingEvaluation<Cell>]) {
         let active = evaluations.filter {
             guard case .midiEffectParameter = $0.target, case .scalar = $0.value else { return false }
             return true
@@ -30,8 +30,8 @@ public struct ArpeggiatorModulationState: Equatable, Sendable {
             else { entries.append(.init(routingID: evaluation.routingID, target: evaluation.target, value: value)) }
         }
     }
-    mutating func retain(routings: [CompiledRoutingPlan]) {
-        let targets = Dictionary(uniqueKeysWithValues: routings.map { ($0.id, $0.target) })
+    /// Keeps entries whose routing still exists with the same target.
+    package mutating func retain(targetsByRoutingID targets: [UUID: SpatialRoutingTarget]) {
         entries.removeAll { targets[$0.routingID] != $0.target }
     }
     public func applying(to editor: ArpeggiatorEffect, stripID: UUID, slotID: UUID) -> ArpeggiatorEffect {

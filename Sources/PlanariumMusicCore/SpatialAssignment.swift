@@ -1,5 +1,4 @@
 import Foundation
-import PLSDeviceValues
 
 /// Device-independent program selection. Only the display origin is one-based;
 /// the stored and transmitted program and optional banks are always 0...127.
@@ -257,7 +256,7 @@ public enum SpatialPitchOperation: Equatable, Sendable {
             }
         }
     }
-    public func apply(toOverrides overrides: inout [PolarDeviceLattice: [SpatialCellAction]]) throws {
+    public func apply<Key: Hashable>(toOverrides overrides: inout [Key: [SpatialCellAction]]) throws {
         for key in overrides.keys {
             overrides[key] = try overrides[key]?.map {
                 .init(target: $0.target, value: try applying(to: $0.value))

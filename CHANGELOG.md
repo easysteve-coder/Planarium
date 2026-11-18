@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+**Öffentlich und GPLv3 (18.11.)**
+
+- Planarium steht öffentlich auf GitHub (`easysteve-coder/Planarium`), Lizenz GNU GPL v3 wie
+  FIRSTofFIFTH (vorher MIT). Der Export enthält Code, Tests und Entwicklerdoku, keine internen
+  Notizen und keine Herstellerunterlagen.
+
+**CONTROLLER (18.11.) · PS5-Controller als zweite Spielquelle**
+
+- Die Bühnenmitte zeigt wahlweise Scanner, Gamecontroller oder beide. Der gezeichnete DualSense
+  leuchtet in den Farben seiner Zuweisungen und lässt sich mit der Maus spielen (Tasten, Sticks,
+  Trigger, Touchpad), auch ohne angeschlossenes Gerät.
+- Zuweisungen je Element: Ausgabe (Kanalzug oder MIDI), Kanal, Note/Skala/Akkord/Regler, Halten,
+  Farbe, Sektoren für Sticks und Touchpad. Assistenten richten Schlagzeug, Melodie oder Akkorde in
+  einem Schritt ein. Zuweisungen werden im Preset gespeichert.
+- Scanner und Controller spielen gleichzeitig; Instrumente und Kanäle gehören je Klasse (Noten/Regler)
+  genau einer Quelle. Der Ausfall einer Quelle stoppt nur deren Klänge; Panic stoppt alles.
+- Ein echter Controller wird automatisch erkannt; die Lightbar zeigt die Farbe der gespielten
+  Zuweisung. Der Gerätetest steht noch aus.
+
+**KERN-TRENNUNG (18.11.) · Soundkern ohne Scanner**
+
+- Neue Module `PlanariumMusicCore` und `PlanariumSoundCore`: Musikwerte, Notenbesitz, Router,
+  Planung und Uhren kennen keinen Scanner mehr. Audio und MIDI hängen nur noch daran. Damit
+  können weitere Spielquellen (Gamecontroller) denselben Klangweg nutzen.
+- Das Scannerverhalten ist unverändert (bitgleicher Replay-Beleg).
+
 **LIVE-NATIV (17.11.) · Messbild, aktive Zellen und Pegel ohne Fenster-Neuaufbau**
 
 - Messbild, aktive/gehaltene Zellen und Pegelbalken zeichnen in eigenen nativen

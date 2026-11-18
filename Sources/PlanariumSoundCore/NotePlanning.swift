@@ -1,5 +1,5 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 
 /// All times share RuntimeClock's monotonic seconds epoch. A token is issued
 /// on Q; callers must retain it rather than manufacture a newer generation.
@@ -12,7 +12,7 @@ public struct PlannedNote: Equatable, Sendable {
     public let deadline: Double
     public let event: MusicEvent
     public let token: NotePlanToken
-    var allowEarly = true
+    package var allowEarly = true
     public init(deadline: Double, event: MusicEvent, token: NotePlanToken) {
         self.deadline = deadline; self.event = event; self.token = token
     }
@@ -34,20 +34,20 @@ public extension PlannedNoteBoundary {
     func permitsNoteOn(bytes: [UInt8], now: Double) -> Bool { true }
 }
 
-struct NotePlanBook: Sendable {
-    static let capacity = 256
-    var pending: [PlannedNote] = []
-    var generations: [UUID: UInt64] = [:]
-    var destinations: [UUID: SpatialOutputDestination] = [:]
-    var serial: UInt64 = 0
-    init() { pending.reserveCapacity(Self.capacity) }
-    mutating func begin(_ owner: UUID) -> NotePlanToken {
+package struct NotePlanBook: Sendable {
+    package static let capacity = 256
+    package var pending: [PlannedNote] = []
+    package var generations: [UUID: UInt64] = [:]
+    package var destinations: [UUID: SpatialOutputDestination] = [:]
+    package var serial: UInt64 = 0
+    package init() { pending.reserveCapacity(Self.capacity) }
+    package mutating func begin(_ owner: UUID) -> NotePlanToken {
         serial &+= 1
         generations[owner] = serial
         return .init(owner: owner, generation: serial)
     }
-    func valid(_ token: NotePlanToken) -> Bool { generations[token.owner] == token.generation }
-    mutating func insert(_ note: PlannedNote) -> NotePlanResult {
+    package func valid(_ token: NotePlanToken) -> Bool { generations[token.owner] == token.generation }
+    package mutating func insert(_ note: PlannedNote) -> NotePlanResult {
         guard valid(note.token) else { return .stale }
         guard note.deadline.isFinite, note.deadline >= 0 else { return .invalid }
         let destination: SpatialOutputDestination
@@ -66,7 +66,7 @@ struct NotePlanBook: Sendable {
         }
         return .accepted
     }
-    mutating func invalidate(_ owner: UUID?) {
+    package mutating func invalidate(_ owner: UUID?) {
         if let owner {
             generations.removeValue(forKey: owner); destinations.removeValue(forKey: owner)
             pending.removeAll { $0.token.owner == owner }

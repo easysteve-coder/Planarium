@@ -5,13 +5,44 @@ final class DomainBoundaryContractTests: XCTestCase {
     private var root: URL { URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent() }
     func testDomainHasOnlyPureDeviceDependencies() throws {
         let manifest = try String(contentsOf: root.appendingPathComponent("Package.swift"))
-        XCTAssertTrue(manifest.contains(".target(name: \"PlanariumDomain\", dependencies: [\"PLSDeviceValues\", \"SickPLSCore\"])") )
+        XCTAssertTrue(manifest.contains(".target(name: \"PlanariumDomain\", dependencies: [\"PLSDeviceValues\", \"PlanariumControllerCore\", \"PlanariumMusicCore\", \"SickPLSCore\"])"))
+        XCTAssertTrue(manifest.contains(".target(name: \"PlanariumMusicCore\"),"), "the music core has no dependency")
         let directory = root.appendingPathComponent("Sources/PlanariumDomain")
         for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) where url.pathExtension == "swift" {
             let text = try String(contentsOf: url)
             XCTAssertFalse(text.contains("import SickPLSControlCore"), url.lastPathComponent)
             XCTAssertFalse(text.contains("ControlValuePredictorConfiguration"), url.lastPathComponent)
             XCTAssertFalse(text.contains("ZoneRole"), url.lastPathComponent)
+        }
+    }
+    /// The sound core (music values, output routing, Audio Unit host, CoreMIDI)
+    /// knows no scanner, input source, geometry or document. Every import in
+    /// every file below these modules (recursively) must be on its allow list.
+    func testSoundModulesImportOnlyAllowedModules() throws {
+        let system: Set<String> = ["Foundation", "Dispatch", "Darwin", "Combine", "os"]
+        let allowed: [String: Set<String>] = [
+            "PlanariumMusicCore": ["Foundation"],
+            "PlanariumSoundCore": system.union(["PlanariumMusicCore", "PlanariumHostClockDSP"]),
+            "PlanariumAudio": system.union(["PlanariumMusicCore", "PlanariumSoundCore", "PlanariumHostClockDSP", "PlanariumFadeDSP",
+                                            "PlanariumObjCCatch", "AVFoundation", "AppKit", "AudioToolbox", "CoreAudio", "CoreAudioKit"]),
+            "PlanariumMIDI": system.union(["PlanariumMusicCore", "PlanariumSoundCore", "CoreMIDI"]),
+            "PlanariumControllerCore": ["Foundation", "PlanariumMusicCore"],
+            "PlanariumControllerInput": ["Foundation", "GameController", "PlanariumControllerCore", "PlanariumMusicCore"],
+        ]
+        for (module, names) in allowed {
+            let directory = root.appendingPathComponent("Sources/\(module)")
+            let files = FileManager.default.enumerator(at: directory, includingPropertiesForKeys: nil)?
+                .compactMap { $0 as? URL }.filter { $0.pathExtension == "swift" } ?? []
+            XCTAssertFalse(files.isEmpty, module)
+            for url in files {
+                for line in try String(contentsOf: url).split(separator: "\n") {
+                    let words = line.split(separator: " ").map(String.init)
+                    guard let index = words.firstIndex(of: "import"), index + 1 < words.count,
+                          words[..<index].allSatisfy({ $0.hasPrefix("@") || $0 == "public" }) else { continue }
+                    let name = words[index + 1].split(separator: ".").first.map(String.init) ?? ""
+                    XCTAssertTrue(names.contains(name), "\(module)/\(url.lastPathComponent) imports \(name)")
+                }
+            }
         }
     }
     func testRetiredPathsHaveNoDeclarations() throws {

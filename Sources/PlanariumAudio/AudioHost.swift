@@ -1,7 +1,7 @@
 import Combine
 import Foundation
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 
 public enum ChannelSlotStatus: Equatable, Sendable {
     case loading, loaded, bypass
@@ -47,8 +47,8 @@ public enum ChannelSlotStatus: Equatable, Sendable {
     public func takeMasterPeaks() -> StereoPeaks { masterPeaks.take() }
     public func applyMixer(_ channels: [InstrumentChannel], masterLevelDecibels: Double,
                            restoringPluginStates: Bool = false) throws {
-        guard channels.count <= InstrumentDocument.maximumChannels else { throw CompiledInstrumentError.tooManyChannels(channels.count) }
-        guard Set(channels.map(\.id)).count == channels.count else { throw CompiledInstrumentError.duplicateChannelID }
+        guard channels.count <= InstrumentChannel.maximumCount else { throw ChannelSetError.tooManyChannels(channels.count) }
+        guard Set(channels.map(\.id)).count == channels.count else { throw ChannelSetError.duplicateChannelID }
         guard !closed else { return }
         guard channels.count <= 1 || graph is any MixerGraphBoundary else { throw PluginLoadError("Audio graph does not support multiple channels") }
         mixerChannels = channels; self.masterLevelDecibels = masterLevelDecibels

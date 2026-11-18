@@ -6,7 +6,7 @@ public struct RuntimeTimingSample: Equatable, Sendable {
     public let completedAt: Double
     public let queueMilliseconds: Double
     public let totalMilliseconds: Double
-    init(requestedAt: Double, completedAt: Double, queueMilliseconds: Double,
+    package init(requestedAt: Double, completedAt: Double, queueMilliseconds: Double,
          totalMilliseconds: Double, ordinal: UInt64 = 0) {
         self.ordinal = ordinal; self.requestedAt = requestedAt; self.completedAt = completedAt
         self.queueMilliseconds = queueMilliseconds; self.totalMilliseconds = totalMilliseconds
@@ -23,7 +23,8 @@ public struct RuntimeDiagnostics: Equatable, Sendable {
 }
 /// Q appends bounded numeric samples, readers copy under one lock. This
 /// recorder never waits for Main or retains a profile, port, or error text.
-final class RuntimeTimingRecorder: @unchecked Sendable {
+package final class RuntimeTimingRecorder: @unchecked Sendable {
+    package init() {}
     private let lock = NSLock()
     private var profiles: [RuntimeTimingSample] = []
     private var panics: [RuntimeTimingSample] = []
@@ -31,8 +32,8 @@ final class RuntimeTimingRecorder: @unchecked Sendable {
     private var panicIndex = 0
     private var profileCount: UInt64 = 0
     private var panicCount: UInt64 = 0
-    static let capacity = 2_048
-    func record(_ sample: RuntimeTimingSample, panic: Bool = false) {
+    package static let capacity = 2_048
+    package func record(_ sample: RuntimeTimingSample, panic: Bool = false) {
         lock.lock(); defer { lock.unlock() }
         let recorded = RuntimeTimingSample(requestedAt: sample.requestedAt, completedAt: sample.completedAt,
             queueMilliseconds: sample.queueMilliseconds, totalMilliseconds: sample.totalMilliseconds,
@@ -47,7 +48,7 @@ final class RuntimeTimingRecorder: @unchecked Sendable {
             profileIndex = (profileIndex + 1) % Self.capacity; profileCount &+= 1
         }
     }
-    func snapshot(processed: UInt64, discarded: UInt64, overflow: UInt64) -> RuntimeDiagnostics {
+    package func snapshot(processed: UInt64, discarded: UInt64, overflow: UInt64) -> RuntimeDiagnostics {
         lock.lock(); defer { lock.unlock() }
         return .init(processedProfiles: processed, discardedProfiles: discarded, overflowProfiles: overflow,
             profileTimings: profiles, panicTimings: panics, profileTimingCount: profileCount, panicTimingCount: panicCount)

@@ -5,8 +5,8 @@ import AppKit
 import AudioToolbox
 import AVFoundation
 import CoreAudioKit
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 import PlanariumHostClockDSP
 
 @MainActor public struct SystemPluginSource: PluginComponentSource {

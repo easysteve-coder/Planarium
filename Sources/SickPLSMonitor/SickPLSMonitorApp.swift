@@ -6,6 +6,8 @@ import PlanariumApplication
 import PlanariumAudio
 import PlanariumInput
 import PlanariumMIDI
+import PlanariumControllerInput
+import PlanariumRuntime
 import PlanariumDomain
 import PlanariumScannerUI
 import SickPLSCommissioningControl
@@ -50,7 +52,7 @@ import SickPLSMonitorKit
     lazy var menuPresentation = MenuPresentationModel(instrument: spatialInstrument, workspace: workspace)
     init() {
         do {
-            let root = try PlanariumComposition(midi: CoreMIDIConnection(), components: SystemPluginSource(), clockSinkFactory: { CoreMIDIClockSink.open($0) }, clockSourceFactory: { CoreMIDIClockSource.open($0, receive: $1, lost: $2) }, clockSourceChanges: { CoreMIDIClockSource.observeSources($0) }, footswitchDefaults: .standard, footswitchSourceFactory: { CoreMIDIClockSource.openFootswitch($0, receive: $1, lost: $2) })
+            let root = try PlanariumComposition(midi: CoreMIDIConnection(), components: SystemPluginSource(), clockSinkFactory: { CoreMIDIClockSink.open($0) }, clockSourceFactory: { CoreMIDIClockSource.open($0, receive: $1, lost: $2) }, clockSourceChanges: { CoreMIDIClockSource.observeSources($0) }, footswitchDefaults: .standard, footswitchSourceFactory: { CoreMIDIClockSource.openFootswitch($0, receive: $1, lost: $2) }, gameControllers: GameControllerSource(now: { MonotonicRuntimeClock().now }))
             self.root = root
             self.emergencyActions = EmergencyActionMonitor(panic: { [weak root] in root?.document.panicAll() })
             OutputMonitorWindowController.shared.configure(display: root.display, instrument: root.document)

@@ -1,4 +1,4 @@
-import PlanariumDomain
+import PlanariumMusicCore
 // SystemAudioUnitComponentSource.swift
 //
 // Die **einzige** Stelle des Rack-Vertrags, die `AVFoundation` anfasst.

@@ -83,6 +83,8 @@ private final class AuditionActivationObserver: @unchecked Sendable {
         }
     }
     public let arpeggiatorModulationDisplay = ArpeggiatorModulationDisplay()
+    /// Game controller assignments and the on-screen controller.
+    public let controllerStage: ControllerStageModel
     public private(set) var presetChangeGeneration: UInt64 = 0
     public private(set) var presetPluginChangeGeneration: UInt64 = 0
     public private(set) var compiledInstrument: CompiledInstrument
@@ -421,6 +423,7 @@ private final class AuditionActivationObserver: @unchecked Sendable {
                 clockReceiver: MIDIClockReceiver? = nil, roomCapture: RoomCaptureWorker) throws {
         self.roomCapture = roomCapture
         self.runtime = runtime; self.audio = audio; self.midi = midi
+        controllerStage = ControllerStageModel(runtime: runtime)
         self.midiClock = midiClock; self.tempoClock = tempoClock
         self.clockReceiver = clockReceiver
         let workspace = initialWorkspace
@@ -464,7 +467,8 @@ private final class AuditionActivationObserver: @unchecked Sendable {
         runtime.onSceneChanged = { [weak self] scene in
             Task { @MainActor in self?.applyRuntimeScene(scene) }
         }
-        runtime.install(compiledInstrument.stampingScene(generation: sceneGeneration))
+        runtime.install(compiledInstrument.stampingScene(generation: sceneGeneration),
+                        controller: try? controllerStage.prepare(document.controller, scanner: compiledInstrument))
         try audio.applyMixer(document.channels, masterLevelDecibels: document.masterLevelDecibels)
         midiClock?.setNoticeHandler { [weak self] message in
             Task { @MainActor in self?.notice = message }
@@ -601,6 +605,7 @@ private final class AuditionActivationObserver: @unchecked Sendable {
         let workspaceChanged = value.spatial.layers != document.spatial.layers || value.editorGrid != document.editorGrid ||
             value.scenes != document.scenes || value.currentSceneID != document.currentSceneID || value.detection != document.detection
         let channelMetadataChanged = value.channelName != document.channelName || value.channelColor != document.channelColor
+        let controllerChanged = value.controller != document.controller
         document = value
         if !mixerOnly { surfaceEditorStorage?.documentDidChange(value) }
         midiClock?.setTempo(value.beatsPerMinute)
@@ -619,18 +624,34 @@ private final class AuditionActivationObserver: @unchecked Sendable {
             workspace.selectLayer(current.selectedLayerID)
             canvas.projectWorkspace(workspace)
         }
+        // The controller plan is compiled against the new scanner plan's targets;
+        // both reach the runtime as ONE ownership change.
         if !mixerOnly {
             minimumSceneRevision = value.revision
-            runtime.install(compiled.stampingScene(generation: sceneGeneration, replacing: replacingScene || authoredScene))
+            let pad: CompiledControllerLayout?
+            do { pad = try controllerStage.prepare(value.controller, scanner: compiled) }
+            catch { pad = nil; notice = "Controller assignment rejected" }
+            runtime.install(compiled.stampingScene(generation: sceneGeneration, replacing: replacingScene || authoredScene), controller: pad)
+        } else if controllerChanged {
+            do { try controllerStage.install(value.controller, scanner: compiled) }
+            catch { notice = "Controller assignment rejected" }
         }
         do { try audio.applyMixer(value.channels, masterLevelDecibels: value.masterLevelDecibels, restoringPluginStates: restoringPluginStates) }
         catch { notice = "Mixer update rejected" }
         // nil selection is the existing virtual-source choice; a document
         // without MIDI actions needs no open MIDI resource. Zero is reserved
         // for that explicit source, never a fallback for a vanished endpoint.
-        if !mixerOnly {
-            midi.apply(canvas.workspace.requiresMIDIOutput ? (value.midiTarget ?? .init(uniqueID: 0)) : nil,
-                       layerTargets: value.spatial.layers.filter { $0.allRoutings.contains { $0.target.destination == .midi } }.compactMap(\.midiTarget))
+        if !mixerOnly || controllerChanged {
+            // The controller resolves its endpoints like its events: an explicit
+            // endpoint equal to the sum output IS the sum output.
+            let sum = value.midiTarget?.uniqueID
+            let controllerEndpoints = value.controller.assignments
+                .filter { $0.isActive && $0.routing.target.destination == .midi }
+                .map { $0.midiEndpointID == sum ? nil : $0.midiEndpointID }
+            let needsSum = canvas.workspace.requiresMIDIOutput || controllerEndpoints.contains(nil)
+            midi.apply(needsSum ? (value.midiTarget ?? .init(uniqueID: 0)) : nil,
+                       layerTargets: value.spatial.layers.filter { $0.allRoutings.contains { $0.target.destination == .midi } }.compactMap(\.midiTarget)
+                        + controllerEndpoints.compactMap { $0.map(InstrumentMIDITarget.init(uniqueID:)) })
         }
         onWorkspaceChange?(canvas.workspace)
     }
@@ -822,6 +843,7 @@ private final class AuditionActivationObserver: @unchecked Sendable {
         runtime.audition(point)
     }
     public func panicAll() { clearAuditionPresentation(); stopClockTransport(); runtime.panic() }
+    func setControllerNotice(_ text: String) { notice = text }
     public func setBeatsPerMinute(_ value: Double) {
         guard !isReceivingClock else { return }
         guard authorize(.tempo) else { return }

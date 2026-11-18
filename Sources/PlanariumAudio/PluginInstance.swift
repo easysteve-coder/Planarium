@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
-import PlanariumDomain
-@_spi(AudioHost) import PlanariumRuntime
+import PlanariumMusicCore
+@_spi(AudioHost) import PlanariumSoundCore
 import PlanariumHostClockDSP
 
 /// One AU, one editor for its whole lifetime, at most one window. Many AUs

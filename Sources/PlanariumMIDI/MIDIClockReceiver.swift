@@ -1,7 +1,7 @@
 import Dispatch
 import Foundation
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 
 public struct MIDIClockPacket: Sendable {
     public let bytes: [UInt8]

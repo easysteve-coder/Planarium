@@ -40,6 +40,7 @@ struct WorkspaceStatusView: View {
                     .accessibilityIdentifier("workspace.toggle.\(area.rawValue)")
                     .disabled(workspace.mode == .perform)
                 }
+                StageSourcePicker()
             }.padding(.horizontal, 12).frame(maxWidth: .infinity, alignment: .leading)
                 .lineLimit(1)
             HStack(spacing: 12) {

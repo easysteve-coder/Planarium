@@ -1,23 +1,25 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 
 /// Q-owned musical cursor. Its deadlines are converted to absolute samples
 /// by the AU boundary; wakeup time is never used as the output timestamp.
-struct ArpeggioProducer {
-    struct Input: Equatable {
-        let channel: UInt8
-        let note: SpatialPlayedNote
+package struct ArpeggioProducer {
+    package struct Input: Equatable {
+        package let channel: UInt8
+        package let note: SpatialPlayedNote
+        package init(channel: UInt8, note: SpatialPlayedNote) { self.channel = channel; self.note = note }
     }
-    var inputs: [Input] = []
-    var next: Double?
-    var index = 0
-    var random: UInt64 = 0x617270
-    var immediate = false
-    var plannedTempo = 120.0
-    var lastPlanned: Double?
-    var plannedRate: ArpeggiatorEffect.Rate?
-    var lastSwingFactor = 1.0
-    mutating func modulateRate(_ rate: ArpeggiatorEffect.Rate, tempo: Double, notBefore now: Double) {
+    package init() {}
+    package var inputs: [Input] = []
+    package var next: Double?
+    package var index = 0
+    package var random: UInt64 = 0x617270
+    package var immediate = false
+    package var plannedTempo = 120.0
+    package var lastPlanned: Double?
+    package var plannedRate: ArpeggiatorEffect.Rate?
+    package var lastSwingFactor = 1.0
+    package mutating func modulateRate(_ rate: ArpeggiatorEffect.Rate, tempo: Double, notBefore now: Double) {
         if let plannedRate, rate != plannedRate {
             if let lastPlanned {
                 let interval = rate.beats * 60 / tempo * lastSwingFactor
@@ -32,14 +34,14 @@ struct ArpeggioProducer {
         }
         plannedRate = rate
     }
-    mutating func retime(tempo: Double, changedAt time: Double) {
+    package mutating func retime(tempo: Double, changedAt time: Double) {
         if let deadline = next, tempo != plannedTempo {
             next = time + (deadline - time) * plannedTempo / tempo
         }
         plannedTempo = tempo
     }
 
-    mutating func update(_ sounding: [Input], at now: Double, effect: ArpeggiatorEffect, beat: Double, tempo: Double) {
+    package mutating func update(_ sounding: [Input], at now: Double, effect: ArpeggiatorEffect, beat: Double, tempo: Double) {
         let retained = inputs.filter { sounding.contains($0) }
         inputs = retained + sounding.filter { !retained.contains($0) }
         if inputs.isEmpty { next = nil; lastPlanned = nil; plannedRate = nil; index = 0; return }
@@ -54,7 +56,7 @@ struct ArpeggioProducer {
             plannedRate = effect.rate
         }
     }
-    mutating func step(effect: ArpeggiatorEffect, tempo: Double) -> (Input, Double, Double, Bool)? {
+    package mutating func step(effect: ArpeggiatorEffect, tempo: Double) -> (Input, Double, Double, Bool)? {
         guard let deadline = next, !inputs.isEmpty else { return nil }
         var tones: [Input] = []
         for octave in 0..<effect.octaves {

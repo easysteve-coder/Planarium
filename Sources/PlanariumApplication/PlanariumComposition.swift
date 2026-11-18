@@ -7,6 +7,7 @@ import PlanariumRuntime
 import PlanariumInput
 import PlanariumAudio
 import PlanariumMIDI
+import PlanariumControllerInput
 import SickPLSMacTransport
 
 /// The sole production construction path, also used by the integration tests.
@@ -23,6 +24,8 @@ import SickPLSMacTransport
     public let display: PerformanceDisplayModel
     public let profileRecording: ProfileRecordingModel
     public let activity: PerformanceActivity
+    /// The game controller device, if this composition listens to one.
+    public let gameControllers: GameControllerSource?
     private var activitySubscriptions: Set<AnyCancellable> = []
     private var suspended = false
     private var resumeAudioAfterSleep = false
@@ -45,7 +48,8 @@ import SickPLSMacTransport
                 initialWorkspace: SpatialInstrumentWorkspace? = nil,
                 activityBoundary: (any PerformanceActivityBoundary)? = nil,
                 footswitchDefaults: UserDefaults? = nil,
-                footswitchSourceFactory: @escaping MIDIClockSourceFactory = { _, _, _ in nil }) throws {
+                footswitchSourceFactory: @escaping MIDIClockSourceFactory = { _, _, _ in nil },
+                gameControllers: GameControllerSource? = nil) throws {
         activity = PerformanceActivity(boundary: activityBoundary ?? SystemPerformanceActivity())
         let input = InputOwner(session: RXSession(opener: scanner, readTimeoutMilliseconds: readTimeoutMilliseconds, clock: clock))
         let recording = ProfileRecordingModel(clock: clock)
@@ -66,6 +70,16 @@ import SickPLSMacTransport
             factory: footswitchSourceFactory, sourceChanges: clockSourceChanges,
             panic: { performance.panic(); driver.stop() }, notification: { [weak model] in model?.noteFootswitchPanic() })
         display = PerformanceDisplayModel(mailbox: core.mailbox, runtime: core.runtime)
+        self.gameControllers = gameControllers
+        if let gameControllers {
+            gameControllers.start { [performance] in performance.controller($0) }
+            // The light bar shows the color of the assignment being played.
+            display.$frame.map { [weak model] frame -> SpatialLayerColor? in
+                guard let ids = frame?.controller.playingAssignmentIDs, !ids.isEmpty,
+                      let assignments = model?.document.controller.assignments else { return nil }
+                return assignments.first { ids.contains($0.id) }?.color
+            }.removeDuplicates().sink { gameControllers.setLight($0) }.store(in: &activitySubscriptions)
+        }
         audio.$isRunning.combineLatest(input.$portOwner).sink { [weak activity] running, owner in
             activity?.update(audio: running, scanner: owner == .monitor || owner == .simulation)
         }.store(in: &activitySubscriptions)
@@ -118,6 +132,7 @@ import SickPLSMacTransport
         terminationDeadline = clock.schedule(at: clock.now + 1.8, on: .main) { [weak self] in
             MainActor.assumeIsolated { self?.finishTermination(deadlineExpired: true) }
         }
+        gameControllers?.stop()
         runtime.panic() // best effort on every bound port, serialized with sends
         input.shutdown { [self] in inputClosed = true; finishTermination() }
         runtime.terminate { [self] in

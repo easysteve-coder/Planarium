@@ -6,6 +6,7 @@
 import Dispatch
 import Foundation
 import PlanariumDomain
+@_exported import PlanariumControllerCore
 
 public final class PerformanceRuntime: @unchecked Sendable {
     private enum Command: Sendable {
@@ -25,6 +26,11 @@ public final class PerformanceRuntime: @unchecked Sendable {
         case noteDeadline(UInt64)
         case deadline(UInt64)
         case backlog(UUID)
+        case controller(ControllerInputEvent)
+        case controllerSimulation(ControllerState)
+        case controllerInstall(CompiledControllerLayout?)
+        case controllerBacklog
+        case installSources(CompiledInstrument, CompiledControllerLayout?)
     }
     private let q = DispatchQueue(label: "de.planarium.performance", qos: .userInteractive)
     private let hostClock: HostMusicalClock
@@ -43,6 +49,8 @@ public final class PerformanceRuntime: @unchecked Sendable {
     private var planSources: [UUID: CompiledActiveCell] = [:]
     public let mailbox: DisplayFrameMailbox
     private var state = PlayState()
+    /// The game controller source: its own engine and note ledger on Q.
+    private var controller = ControllerEngine()
     private var sleeping = false
     private var router = OutputRouter()
     private let releaseJournal = OutputReleaseJournal()
@@ -62,6 +70,11 @@ public final class PerformanceRuntime: @unchecked Sendable {
     private var commands: [Command?] = []
     private var commandHead = 0
     private var queuedProfiles = 0
+    /// Ingress-locked: queued controller reports and the overload latch.
+    private var queuedControllerReports = 0
+    private var controllerOverloaded = false
+    /// About two seconds of DualSense reports; far beyond normal Q latency.
+    static let controllerBacklogLimit = 512
     private var ingressSessionID: UUID?
     private let profileCapacity: Int
     /// PLS streams in both 90- and 361-point modes are measured at 25 Hz.
@@ -146,6 +159,10 @@ public final class PerformanceRuntime: @unchecked Sendable {
         if enqueueRelease { commands.append(.backlog(session)) }
     }
     public func install(_ instrument: CompiledInstrument) { enqueue(.play(.install(instrument))) }
+    /// Scanner instrument and controller plan as ONE ownership change.
+    public func install(_ instrument: CompiledInstrument, controller layout: CompiledControllerLayout?) {
+        enqueue(.installSources(instrument, layout))
+    }
     public func sessionBegan(_ id: UUID) { enqueue(.play(.sessionBegan(id))) }
     public func sessionEnded(_ id: UUID, reason: InputSessionEndReason = .userRequested) { enqueue(.play(.sessionEnded(id, reason: reason))) }
     public func audition(_ point: MetricScanPoint?) { enqueue(.play(.audition(point, time: clock.now))) }
@@ -162,6 +179,12 @@ public final class PerformanceRuntime: @unchecked Sendable {
     public func retire(_ id: UUID, ack: @escaping @Sendable () -> Void) { enqueue(.retire(id, ack)) }
     public func detectionChanged(_ instrument: CompiledInstrument) { enqueue(.play(.detectionChanged(instrument))) }
     public func roomContour(_ contour: SpatialRoomContour?) { enqueue(.play(.roomContour(contour))) }
+    /// Reports of the game controller source, in their own order.
+    public func controller(_ event: ControllerInputEvent) { enqueue(.controller(event)) }
+    /// The on-screen controller; merged on top of the measured device state.
+    public func simulateController(_ state: ControllerState) { enqueue(.controllerSimulation(state)) }
+    /// A compiled controller layout (or nil). Unchanged assignments keep sounding.
+    public func installController(_ layout: CompiledControllerLayout?) { enqueue(.controllerInstall(layout)) }
 
     private func enqueue(_ command: Command) {
         ingressLock.lock()
@@ -170,6 +193,24 @@ public final class PerformanceRuntime: @unchecked Sendable {
         case .play(.sessionEnded(let id, _)):
             if ingressSessionID == id { ingressSessionID = nil }
         case .terminate: ingressSessionID = nil
+        default: break
+        }
+        // Controller reports keep their order and every edge. A backlog beyond
+        // the limit is not thinned (that could drop a musical entry or exit):
+        // further reports are refused and ONE source-local overload release
+        // follows, like the scanner's backlog. Held elements then stay silent
+        // until released; Panic and Disconnect are never queued behind more.
+        switch command {
+        case .controller(.state), .controllerSimulation:
+            if controllerOverloaded { overflows &+= 1; ingressLock.unlock(); return }
+            if queuedControllerReports >= Self.controllerBacklogLimit {
+                controllerOverloaded = true; overflows &+= 1
+                commands.append(.controllerBacklog)
+                startDrainLocked()
+                ingressLock.unlock()
+                return
+            }
+            queuedControllerReports += 1
         default: break
         }
         commands.append(command)
@@ -197,6 +238,11 @@ public final class PerformanceRuntime: @unchecked Sendable {
                 commandHead = 0
             }
             if case .frame = command { queuedProfiles -= 1 }
+            switch command {
+            case .controller(.state), .controllerSimulation: queuedControllerReports -= 1
+            case .controllerBacklog: controllerOverloaded = false
+            default: break
+            }
             ingressLock.unlock()
             process(command)
         } else {
@@ -239,7 +285,7 @@ public final class PerformanceRuntime: @unchecked Sendable {
                     overflows &+= 1; discarded &+= 1
                     beginBacklogLocked(session: frame.sessionID, enqueueRelease: false)
                     ingressLock.unlock()
-                    apply(.stop) // RELEASE: backlog-age
+                    apply(.stop, scannerOnly: true) // RELEASE: backlog-age
                     return
                 }
                 let count = state.processedProfileCount
@@ -290,16 +336,56 @@ public final class PerformanceRuntime: @unchecked Sendable {
             timer?.cancel()
             timer = nil
             scheduledDeadline = nil
-            apply(.timeAdvanced(clock.now))
+            let now = clock.now
+            routeController(controller.advance(to: now))
+            apply(.timeAdvanced(now))
         case .backlog(let session):
             // An obsolete session cannot release a newer session. Overflow
             // deliberately releases Hold/Toggle too; ordinary input loss does not.
             guard state.sessionID == session else { return }
-            apply(.stop) // RELEASE: backlog
+            apply(.stop, scannerOnly: true) // RELEASE: backlog
+        case .controller(let event):
+            guard !sleeping || !Self.isMusicalReport(event) else { return }
+            applyController(controller.apply(event))
+        case .controllerSimulation(let simulated):
+            guard !sleeping else { return }
+            applyController(controller.simulate(simulated, at: clock.now))
+        case .controllerInstall(let layout):
+            applyController(controller.install(layout, at: clock.now))
+        case .controllerBacklog:
+            applyController(controller.overload())
+        case let .installSources(instrument, layout):
+            // One command: the pad's old ownership is released (at its old
+            // targets) BEFORE the new scanner plan applies, and the new pad plan
+            // is the one compiled against it. No report of either source can
+            // run between them.
+            apply(.install(instrument), leading: controller.install(layout, at: clock.now))
         }
     }
-    @discardableResult private func apply(_ input: PlayInput, retiredPort: OutputPortDisplay? = nil) -> Double {
+    /// `scannerOnly`: a scanner-local stop (input backlog) leaves the controller source alone.
+    @discardableResult private func apply(_ input: PlayInput, retiredPort: OutputPortDisplay? = nil, scannerOnly: Bool = false,
+                                          leading: [MusicEvent] = []) -> Double {
+        // Every source ends on Panic, a user stop, sleep and quit, and with a new
+        // preset session. Scanner input loss and backlog release the scanner only.
+        // `leading`: the pad's releases of an ownership change, routed before
+        // anything of the new scanner plan.
+        var controllerEvents: [MusicEvent] = leading
         switch input {
+        case .panic: controllerEvents += controller.panic()
+        case .stop where !scannerOnly, .sleep, .terminate: controllerEvents += controller.stop()
+        case .install(let replacement) where state.instrument != nil && state.instrument?.revision.session != replacement.revision.session:
+            controllerEvents += controller.stop()
+        // An Audio Unit release reaches every source's ledger; MIDI notes stay.
+        case .releaseAudioChannel(let id): controllerEvents += controller.releaseAudio(stripID: id)
+        case .audioConfigurationChanged: controllerEvents += controller.releaseAudio(stripID: nil)
+        default: break
+        }
+        // Arpeggios belong to the source that owns their strip's notes.
+        let padStrips = controller.ownedNoteStrips
+        let spared = scannerOnly || Self.isScannerLocal(input) ? controllerControlChannels : []
+        switch input {
+        case .stop where scannerOnly:
+            cancelArpeggios(sparing: padStrips); cancelAllNotePlans()
         case .panic, .stop, .sleep, .wake, .terminate:
             cancelArpeggios(); cancelAllNotePlans()
         case .install(let replacement):
@@ -321,7 +407,7 @@ public final class PerformanceRuntime: @unchecked Sendable {
             cancelArpeggios(stripID: id)
             cancelAudioNotePlans(stripID: id)
         case .sessionEnded(let id, .userRequested):
-            if state.sessionID == nil || state.sessionID == id { cancelArpeggios(); cancelAllNotePlans() }
+            if state.sessionID == nil || state.sessionID == id { cancelArpeggios(sparing: padStrips); cancelAllNotePlans() }
         default: break
         }
         switch input {
@@ -337,7 +423,7 @@ public final class PerformanceRuntime: @unchecked Sendable {
         }
         switch input {
         case .stop, .sleep, .wake, .terminate, .inputLost, .sessionEnded, .sessionBegan:
-            router.releaseControllers()
+            router.releaseControllers(sparing: spared)
         case .releaseAudioChannel(let id):
             router.releaseControllers(destination: .audioUnit(stripID: id))
         case .install(let replacement), .detectionChanged(let replacement):
@@ -354,7 +440,7 @@ public final class PerformanceRuntime: @unchecked Sendable {
                         for routing in layer.routings {
                             guard let channel = routing.target.midiChannel else { continue }
                             let destination = routing.target.stripID.map { SpatialOutputDestination.audioUnit(stripID: $0) } ?? midiDestination
-                            router.releaseControllers(destination: destination, channel: channel)
+                            router.releaseControllers(destination: destination, channel: channel, sparing: controllerControlChannels)
                         }
                     }
                     for strip in old.channels where replacement.channels.first(where: { $0.id == strip.id })?.instrument?.identity != strip.instrument?.identity || !replacement.channels.contains(where: { $0.id == strip.id }) {
@@ -369,8 +455,8 @@ public final class PerformanceRuntime: @unchecked Sendable {
         let hadProfile = state.displayProfile != nil
         let next = PlayEngine.step(state, input)
         state = next.0
-        if hadProfile && state.displayProfile == nil { router.releaseControllers() }
-        if previousScene?.generation != state.sceneSnapshot?.generation { cancelArpeggios() }
+        if hadProfile && state.displayProfile == nil { router.releaseControllers(sparing: controllerControlChannels) }
+        if previousScene?.generation != state.sceneSnapshot?.generation { cancelArpeggios(sparing: padStrips) }
         if previousScene != state.sceneSnapshot { cancelAllNotePlans() }
         switch input {
         case .install, .detectionChanged:
@@ -388,15 +474,15 @@ public final class PerformanceRuntime: @unchecked Sendable {
             DispatchQueue.main.async { callback?(scene) }
         }
         if case .audioConfigurationChanged = input {
-            router.panic(audioOnly: true, releasing: next.1, now: noteClock.now)
+            router.panic(audioOnly: true, releasing: next.1 + controllerEvents, now: noteClock.now)
         } else if case .panic = input {
             // Pure engine events describe document ownership. Physical PANIC
             // is sent once per actual binding by its sole port owner.
             // Finish each preceding healthy port (Offs + all 16 channels)
             // before a later misbehaving boundary can block the queue.
-            router.panic(releasing: next.1, now: noteClock.now)
+            router.panic(releasing: next.1 + controllerEvents, now: noteClock.now)
         } else {
-            router.route(next.1.filter { !isArpeggiatedNote($0) }, sounding: state.soundingEvents.filter { !isArpeggiatedNote($0) },
+            router.route((controllerEvents + next.1).filter { !isArpeggiatedNote($0) }, sounding: allSoundingEvents.filter { !isArpeggiatedNote($0) },
                          allowOn: state.processedProfileCount != oldCount, now: noteClock.now)
         }
         updateArpeggios()
@@ -406,6 +492,34 @@ public final class PerformanceRuntime: @unchecked Sendable {
         publish(retiredPort: retiredPort)
         return routedAt
     }
+    /// Both sources' sounding notes: the router reconciles every port against
+    /// the whole set, so one source never turns the other's notes off.
+    private var allSoundingEvents: [MusicEvent] { state.soundingEvents + controller.soundingEvents }
+    private var controllerControlChannels: Set<OutputChannelKey> {
+        Set(controller.ownedControlChannels.map { OutputChannelKey(destination: $0.destination, channel: $0.channel) })
+    }
+    private static func isScannerLocal(_ input: PlayInput) -> Bool {
+        switch input {
+        case .inputLost, .sessionEnded, .sessionBegan, .frame, .timeAdvanced, .detectionChanged, .roomContour, .audition: return true
+        default: return false
+        }
+    }
+    private static func isMusicalReport(_ event: ControllerInputEvent) -> Bool {
+        if case .state = event { return true }
+        return false
+    }
+    /// A controller report is measured input: its note-ons are allowed.
+    private func routeController(_ events: [MusicEvent]) {
+        guard !events.isEmpty else { return }
+        router.route(events.filter { !isArpeggiatedNote($0) }, sounding: allSoundingEvents.filter { !isArpeggiatedNote($0) },
+                     allowOn: true, now: noteClock.now)
+    }
+    private func applyController(_ events: [MusicEvent]) {
+        routeController(events)
+        updateArpeggios()
+        scheduleNextDeadline()
+        publish()
+    }
     private func isArpeggiatedNote(_ event: MusicEvent) -> Bool {
         let destination: SpatialOutputDestination
         switch event {
@@ -414,6 +528,14 @@ public final class PerformanceRuntime: @unchecked Sendable {
         }
         guard let id = destination.stripID else { return false }
         return state.instrument?.channels.first { $0.id == id }?.midiEffects.contains { !$0.bypassed && $0.kind == .arpeggiator } == true
+    }
+    /// `sparing`: strips whose notes another source owns keep their arpeggio.
+    private func cancelArpeggios(sparing spared: Set<UUID>) {
+        guard !spared.isEmpty else { cancelArpeggios(); return }
+        for id in Set(arpeggios.keys).subtracting(spared) { cancelArpeggios(stripID: id) }
+        for strip in state.instrument?.channels ?? [] where arpeggios[strip.id] == nil && !spared.contains(strip.id) {
+            router.invalidateSampleNotes(stripID: strip.id)
+        }
     }
     private func cancelArpeggios(stripID: UUID? = nil) {
         router.invalidateSampleNotes(stripID: stripID)
@@ -442,7 +564,7 @@ public final class PerformanceRuntime: @unchecked Sendable {
             guard let stage = active.firstIndex(where: { $0.kind == .arpeggiator }) else { continue }
             guard router.hasSampleBoundary(stripID: strip.id) else { continue }
             let effect = state.arpeggiatorModulation.applying(to: active[stage].arpeggiator, stripID: strip.id, slotID: active[stage].id)
-            let inputs: [ArpeggioProducer.Input] = state.soundingEvents.compactMap {
+            let inputs: [ArpeggioProducer.Input] = allSoundingEvents.compactMap {
                 guard case let .noteOn(.audioUnit(id), channel, note) = $0, id == strip.id else { return nil }
                 return .init(channel: channel, note: note)
             }
@@ -541,10 +663,11 @@ public final class PerformanceRuntime: @unchecked Sendable {
         }
     }
     private func scheduleNextDeadline() {
-        guard state.nextDeadline != scheduledDeadline else { return }
+        let next = [state.nextDeadline, controller.nextDeadline].compactMap { $0 }.min()
+        guard next != scheduledDeadline else { return }
         timer?.cancel()
         timer = nil
-        scheduledDeadline = state.nextDeadline
+        scheduledDeadline = next
         timerGeneration &+= 1
         guard let deadline = scheduledDeadline else { return }
         let generation = timerGeneration
@@ -563,7 +686,7 @@ public final class PerformanceRuntime: @unchecked Sendable {
                             revision: state.instrument?.revision, scene: state.sceneSnapshot, sessionID: state.sessionID,
                             processedProfiles: state.processedProfileCount,
                             discardedProfiles: dropped, overflowProfiles: overflowCount, soundingNoteOwners: state.soundingNoteOwners, outputMonitor: monitor, heldCells: state.heldCells, ports: router.display, retiredPort: retiredPort,
-                            partitionOwners: state.instrument?.partitionOwner ?? [:]))
+                            partitionOwners: state.instrument?.partitionOwner ?? [:], controller: controller.display))
     }
 }
 
@@ -599,3 +722,6 @@ public enum PerformanceRuntimeFactory {
         return .init(runtime: runtime, mailbox: mailbox)
     }
 }
+
+/// The runtime is the one host every sound module binds its ports to.
+extension PerformanceRuntime: OutputPortHost {}

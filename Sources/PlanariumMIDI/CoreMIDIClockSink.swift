@@ -1,7 +1,7 @@
 import CoreMIDI
 import Darwin
 import Foundation
-import PlanariumRuntime
+import PlanariumSoundCore
 
 /// Constructed, sent, flushed and disposed exclusively by MIDIClockDriver.q.
 /// Host timestamps share Dispatch uptime's mach_absolute_time epoch. The

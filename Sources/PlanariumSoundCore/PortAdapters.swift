@@ -1,5 +1,5 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 
 /// A direct, synchronous byte send. Missing target must return unbound.
 /// Implementations are thread-safe; no transport queue or leases are involved.

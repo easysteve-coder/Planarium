@@ -28,19 +28,6 @@ public struct ProfileFrame: Equatable, Sendable {
     }
 }
 
-/// Output destinations are data. The engine neither owns nor calls a port.
-public enum MusicEvent: Equatable, Sendable {
-    case programChange(destination: SpatialOutputDestination, channel: UInt8, selection: SpatialProgramChange)
-    case midiValue(destination: SpatialOutputDestination, target: SpatialRoutingTarget, value: Double)
-    case noteOn(destination: SpatialOutputDestination, channel: UInt8, note: SpatialPlayedNote)
-    case noteOff(destination: SpatialOutputDestination, channel: UInt8, note: SpatialPlayedNote)
-    case scalar(routingID: UUID, target: SpatialRoutingTarget, value: Double)
-    case boolean(routingID: UUID, target: SpatialRoutingTarget, value: Bool)
-    case allNotesOff(destination: SpatialOutputDestination, channel: UInt8)
-    /// Published to the UI by Runtime; never an audio or MIDI output.
-    case sceneChanged(UUID?)
-}
-
 public enum InputSessionEndReason: Equatable, Sendable {
     case failure
     case userRequested
@@ -289,7 +276,7 @@ private extension PlayState {
                 arpeggiatorModulation = .init()
                 sceneGeneration &+= 1
             }
-            arpeggiatorModulation.retain(routings: replacement.layers.flatMap(\.routings).filter { !replacement.unavailableRoutingIDs.contains($0.id) })
+            arpeggiatorModulation.retain(targetsByRoutingID: Dictionary(uniqueKeysWithValues: replacement.layers.flatMap(\.routings).filter { !replacement.unavailableRoutingIDs.contains($0.id) }.map { ($0.id, $0.target) }))
             instrument = replacement
             // Installation cannot issue a PC. A changed assignment is eligible
             // only on the next confirmed measured profile.

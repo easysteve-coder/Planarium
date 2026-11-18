@@ -1,7 +1,7 @@
 import Combine
 import Foundation
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 
 public struct MIDITargetDescription: Identifiable, Equatable, Sendable {
     public let id: Int32
@@ -42,7 +42,7 @@ public struct MIDIConnectionError: Error, Equatable, Sendable {
     public func rememberProgramCounting(_ value: Bool, for uid: Int32) {
         preferences.set(value, forKey: "midi.programCountsFromOne.\(uid)")
     }
-    private let runtime: PerformanceRuntime
+    private let runtime: any OutputPortHost
     private let transport: any MIDIConnectionBoundary
     private var portID: UUID?
     private var retiring = false
@@ -52,7 +52,7 @@ public struct MIDIConnectionError: Error, Equatable, Sendable {
     private let destination: SpatialOutputDestination
     private var layerOwners: [Int32: MIDIPortOwner] = [:]
     private var pendingChildShutdowns = 0
-    public init(runtime: PerformanceRuntime, transport: any MIDIConnectionBoundary, destination: SpatialOutputDestination = .midi, preferences: UserDefaults = .standard) {
+    public init(runtime: any OutputPortHost, transport: any MIDIConnectionBoundary, destination: SpatialOutputDestination = .midi, preferences: UserDefaults = .standard) {
         self.runtime = runtime; self.transport = transport; self.preferences = preferences
         self.destination = destination
         transport.onDestinationLost = { [weak self] in self?.lost() }

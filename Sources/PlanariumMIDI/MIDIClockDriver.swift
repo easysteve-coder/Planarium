@@ -1,7 +1,7 @@
 import Dispatch
 import Foundation
-import PlanariumDomain
-import PlanariumRuntime
+import PlanariumMusicCore
+import PlanariumSoundCore
 
 /// A separate, timestamped clock port. Only the driver's serial queue may use
 /// or dispose it; no note routing or UI lifetime crosses this boundary.

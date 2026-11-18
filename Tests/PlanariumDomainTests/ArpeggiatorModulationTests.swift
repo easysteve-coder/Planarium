@@ -43,7 +43,7 @@ final class ArpeggiatorModulationTests: XCTestCase {
             XCTAssertEqual(state.applying(to: .init(), stripID: strip, slotID: slot).gate, reversed ? 10 : 100)
             state.update([pair[0], .init(routingID: pair[1].routingID, target: target, value: .inactive)])
             XCTAssertEqual(state.applying(to: .init(), stripID: strip, slotID: slot).gate, reversed ? 100 : 10)
-            state.update([])
+            state.update([SpatialRoutingEvaluation]())
             XCTAssertEqual(state.applying(to: .init(), stripID: strip, slotID: slot), ArpeggiatorEffect())
         }
     }

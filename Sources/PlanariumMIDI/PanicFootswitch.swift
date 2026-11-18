@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import PlanariumRuntime
+import PlanariumSoundCore
 
 public struct PanicFootswitchTrigger: Codable, Equatable, Sendable {
     public let status: UInt8

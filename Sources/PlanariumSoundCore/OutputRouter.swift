@@ -1,12 +1,18 @@
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 
 public enum PortSendResult: Equatable, Sendable { case sent, unbound, faulted }
+/// One channel of one output destination.
+public struct OutputChannelKey: Hashable, Sendable {
+    public let destination: SpatialOutputDestination
+    public let channel: UInt8
+    public init(destination: SpatialOutputDestination, channel: UInt8) { self.destination = destination; self.channel = channel & 0x0F }
+}
 public struct PortSendCounts: Equatable, Sendable {
     public private(set) var sent: UInt64 = 0
     public private(set) var unbound: UInt64 = 0
     public private(set) var faulted: UInt64 = 0
-    mutating func record(_ result: PortSendResult) {
+    package mutating func record(_ result: PortSendResult) {
         switch result {
         case .sent: sent &+= 1
         case .unbound: unbound &+= 1
@@ -54,7 +60,7 @@ public struct OutputPort: Sendable {
     private var result: PortSendResult = .unbound
     private var pendingResetChannels: [UInt8]
     private var pendingResetPhase = 0
-    var terminationJournal: OutputReleaseJournal?
+    package var terminationJournal: OutputReleaseJournal?
 
     public init(id: UUID = UUID(), destination: SpatialOutputDestination, resetOnBind: Bool = false,
                 midiUniqueID: Int32? = nil, plannedBoundary: (any PlannedNoteBoundary)? = nil, send: @escaping @Sendable (MusicEvent) -> PortSendResult) {
@@ -68,7 +74,7 @@ public struct OutputPort: Sendable {
     fileprivate func accepts(_ destination: SpatialOutputDestination?) -> Bool {
         destination == self.destination || midiUniqueID.map { destination == .midiEndpoint(uniqueID: $0) } == true
     }
-    mutating func setMonitorVisible(_ visible: Bool) {
+    package mutating func setMonitorVisible(_ visible: Bool) {
         guard visible != monitor.enabled else { return }
         cachedMonitor = nil
         monitor = OutputMonitorStorage()
@@ -81,14 +87,14 @@ public struct OutputPort: Sendable {
             }
         }
     }
-    var monitorSnapshot: OutputMonitorSnapshot? {
+    package var monitorSnapshot: OutputMonitorSnapshot? {
         mutating get {
             guard monitor.enabled else { return nil }
             if cachedMonitor?.generation != monitor.generation { cachedMonitor = monitor.snapshot(id: id, destination: destination) }
             return cachedMonitor
         }
     }
-    mutating func resetPrograms() { programs.removeAll() }
+    package mutating func resetPrograms() { programs.removeAll() }
     public var display: OutputPortDisplay {
         .init(id: id, destination: destination, result: result, counts: counts, sentCC: sentCC, sentPC: sentPC, soundingNotes: notes.count + plannedReceipts.count)
     }
@@ -142,22 +148,22 @@ public struct OutputPort: Sendable {
         recordPlannedPending()
         return result
     }
-    var sampleBoundary: (any SampleNoteBoundary)? { plannedBoundary as? any SampleNoteBoundary }
-    var planningLead: Double { max(0, plannedBoundary?.planningLead ?? 0) }
-    var receiptOwners: Set<UUID> { Set(plannedReceipts.values.flatMap { $0.tokens.map(\.owner) }) }
-    func plannedReceiptsForCancellation(valid: [UUID: UInt64]) -> [UUID] {
+    package var sampleBoundary: (any SampleNoteBoundary)? { plannedBoundary as? any SampleNoteBoundary }
+    package var planningLead: Double { max(0, plannedBoundary?.planningLead ?? 0) }
+    package var receiptOwners: Set<UUID> { Set(plannedReceipts.values.flatMap { $0.tokens.map(\.owner) }) }
+    package func plannedReceiptsForCancellation(valid: [UUID: UInt64]) -> [UUID] {
         plannedReceipts.values.flatMap { receipt in
             receipt.tokens.filter { receipt.canceled || valid[$0.owner] != $0.generation }.map(\.owner)
         }
     }
-    var nextReceiptDeadline: Double? { plannedReceipts.values.compactMap(\.offDeadline).min() }
-    var hasPendingPlanReleases: Bool { plannedReceipts.values.contains { $0.canceled } }
-    mutating func reapPlanned(now: Double) {
+    package var nextReceiptDeadline: Double? { plannedReceipts.values.compactMap(\.offDeadline).min() }
+    package var hasPendingPlanReleases: Bool { plannedReceipts.values.contains { $0.canceled } }
+    package mutating func reapPlanned(now: Double) {
         plannedReceipts = plannedReceipts.filter { $0.value.offDeadline.map { $0 > now } ?? true }
         deferredReleases = deferredReleases.filter { $0.value >= now }
         recordPlannedPending()
     }
-    mutating func sendPlanned(_ plan: PlannedNote, now: Double) -> PortSendResult {
+    package mutating func sendPlanned(_ plan: PlannedNote, now: Double) -> PortSendResult {
         guard let boundary = plannedBoundary, let bytes = MusicEventMIDIEncoding.bytes(plan.event) else { return .unbound }
         let key: PortNote
         let isOn: Bool
@@ -215,7 +221,7 @@ public struct OutputPort: Sendable {
         recordPlannedPending()
         return result
     }
-    mutating func cancelPlans(owner: UUID?, now: Double) {
+    package mutating func cancelPlans(owner: UUID?, now: Double) {
         guard let boundary = plannedBoundary else { return }
         for key in plannedReceipts.keys.sorted() {
             guard var receipt = plannedReceipts[key], owner == nil || receipt.tokens.contains(where: { $0.owner == owner }),
@@ -244,7 +250,7 @@ public struct OutputPort: Sendable {
     private func recordPlannedPending() { recordPending(notes) }
     /// Q performs recovery on the new binding before any musical event. A
     /// refused reset remains pending and prevents a later On hiding the failure.
-    @discardableResult mutating func prepareBinding() -> PortSendResult {
+    @discardableResult package mutating func prepareBinding() -> PortSendResult {
         let wasResetting = !pendingResetChannels.isEmpty
         while let channel = pendingResetChannels.first {
             let event: MusicEvent
@@ -283,7 +289,7 @@ public struct OutputPort: Sendable {
             .init(portID: id, destination: destination, channel: $0.channel, note: $0.number)
         })
     }
-    mutating func route(_ event: MusicEvent, now: Double) {
+    package mutating func route(_ event: MusicEvent, now: Double) {
         switch event {
         case .programChange(_, let channel, let selection):
             if programs[channel]?.hasSameWireSelection(as: selection) == true { return }
@@ -315,14 +321,14 @@ public struct OutputPort: Sendable {
             send(.noteOn(destination: destination, channel: key.channel, note: wanted[key]!))
         }
     }
-    @discardableResult mutating func releaseControllers(channel: UInt8? = nil) -> PortSendResult {
+    @discardableResult package mutating func releaseControllers(channel: UInt8? = nil, sparing spared: Set<UInt8> = []) -> PortSendResult {
         var failure: PortSendResult = .sent
-        for ch in sustain.sorted() where channel == nil || channel == ch {
+        for ch in sustain.sorted() where (channel == nil || channel == ch) && !spared.contains(ch) {
             let target: SpatialRoutingTarget = destination.stripID.map { .audioUnitCC(channel: ch, controller: 64, stripID: $0) } ?? .midiCC(channel: ch, controller: 64)
             let reset = send(.midiValue(destination: destination, target: target, value: 0))
             if reset != .sent { failure = reset }
         }
-        for ch in bend.sorted() where channel == nil || channel == ch {
+        for ch in bend.sorted() where (channel == nil || channel == ch) && !spared.contains(ch) {
             let target: SpatialRoutingTarget = destination.stripID.map { .audioUnitPitchBend(channel: ch, stripID: $0) } ?? .midiPitchBend(channel: ch)
             let reset = send(.midiValue(destination: destination, target: target, value: 8192.0 / 16383))
             if reset != .sent { failure = reset }
@@ -330,7 +336,7 @@ public struct OutputPort: Sendable {
         if failure != .sent { result = failure }
         return failure
     }
-    mutating func release() {
+    package mutating func release() {
         for key in notes.keys.sorted() {
             send(.noteOff(destination: destination, channel: key.channel, note: notes[key]!))
         }
@@ -338,9 +344,9 @@ public struct OutputPort: Sendable {
     }
 }
 private struct PortNote: Hashable, Comparable, Sendable {
-    let channel: UInt8
-    let number: UInt8
-    static func < (a: Self, b: Self) -> Bool { (a.channel, a.number) < (b.channel, b.number) }
+    package let channel: UInt8
+    package let number: UInt8
+    package static func < (a: Self, b: Self) -> Bool { (a.channel, a.number) < (b.channel, b.number) }
 }
 
 /// Q-owned value; failures and receipts are isolated per physical port.
@@ -375,7 +381,7 @@ public struct OutputRouter: Sendable {
         }
         for index in ports.indices { ports[index].cancelPlans(owner: owner, now: now) }
     }
-    @discardableResult mutating func cancelAudioNotePlans(stripID: UUID? = nil, now: Double) -> Set<UUID> {
+    @discardableResult package mutating func cancelAudioNotePlans(stripID: UUID? = nil, now: Double) -> Set<UUID> {
         // Empty tokens have no output commitment yet and are invalidated
         // conservatively; registered MIDI/other-strip owners remain intact.
         var owners = Set(plans.generations.keys.filter { owner in
@@ -389,7 +395,7 @@ public struct OutputRouter: Sendable {
         for owner in owners { cancelNotePlans(owner: owner, now: now) }
         return owners
     }
-    var plannedOwners: [UUID] { Array(plans.generations.keys) }
+    package var plannedOwners: [UUID] { Array(plans.generations.keys) }
     public var nextPlannedDeadline: Double? {
         let deadlines = plans.pending.map { plan in
             let lead = plan.allowEarly ? ports.filter { $0.accepts(plan.event.outputDestination) }.map(\.planningLead).min() ?? 0 : 0
@@ -474,22 +480,29 @@ public struct OutputRouter: Sendable {
                                    allowOn: allowOn, attempted: attempted, now: now)
         }
     }
-    func hasSampleBoundary(stripID: UUID) -> Bool {
+    package func hasSampleBoundary(stripID: UUID) -> Bool {
         ports.contains { $0.destination == .audioUnit(stripID: stripID) && $0.sampleBoundary?.sampleNotesAvailable == true }
     }
-    mutating func enqueueSampleNote(stripID: UUID, bytes: [UInt8], deadline: Double, immediate: Bool) -> PortSendResult {
+    package mutating func enqueueSampleNote(stripID: UUID, bytes: [UInt8], deadline: Double, immediate: Bool) -> PortSendResult {
         guard let port = ports.first(where: { $0.destination == .audioUnit(stripID: stripID) }),
               let boundary = port.sampleBoundary else { return .unbound }
         return boundary.enqueueSampleNote(bytes: bytes, deadline: deadline, immediate: immediate)
     }
-    func invalidateSampleNotes(stripID: UUID? = nil) {
+    package func invalidateSampleNotes(stripID: UUID? = nil) {
         for port in ports where stripID == nil || port.destination == .audioUnit(stripID: stripID!) {
             port.sampleBoundary?.invalidateSampleNotes()
         }
     }
     public mutating func releaseControllers(destination: SpatialOutputDestination? = nil, channel: UInt8? = nil) {
+        releaseControllers(destination: destination, channel: channel, sparing: [])
+    }
+    /// Resets sustain and pitch bend like above, except on the channels another
+    /// playing source owns as its controls (a source-local release).
+    public mutating func releaseControllers(destination: SpatialOutputDestination? = nil, channel: UInt8? = nil,
+                                            sparing spared: Set<OutputChannelKey>) {
         for index in ports.indices where destination == nil || ports[index].accepts(destination) {
-            ports[index].releaseControllers(channel: channel)
+            let channels = Set(spared.filter { ports[index].accepts($0.destination) }.map(\.channel))
+            ports[index].releaseControllers(channel: channel, sparing: channels)
         }
     }
     public mutating func resetPrograms() {
@@ -545,13 +558,14 @@ public struct UnconfirmedNoteOff: Equatable, Sendable {
 }
 /// Only copies receipts under the lock; never calls a destination or waits for Q.
 /// Writes originate on Q; the termination deadline can read on Main.
-final class OutputReleaseJournal: @unchecked Sendable {
+package final class OutputReleaseJournal: @unchecked Sendable {
+    package init() {}
     private let lock = NSLock()
     private var ports: [UUID: [UnconfirmedNoteOff]] = [:]
-    func record(id: UUID, notes: [UnconfirmedNoteOff]) {
+    package func record(id: UUID, notes: [UnconfirmedNoteOff]) {
         lock.lock(); ports[id] = notes; lock.unlock()
     }
-    func snapshot() -> [UnconfirmedNoteOff] {
+    package func snapshot() -> [UnconfirmedNoteOff] {
         lock.lock(); defer { lock.unlock() }
         return ports.keys.sorted { $0.uuidString < $1.uuidString }.flatMap { ports[$0]! }
     }

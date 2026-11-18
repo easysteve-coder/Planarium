@@ -3,6 +3,7 @@
 // reference to mutable storage escapes. Consumers receive immutable snapshots.
 import Foundation
 import PlanariumDomain
+import PlanariumControllerCore
 
 public enum InputBacklogStatus: Equatable, Sendable {
     case ready, overloaded, recovered
@@ -35,11 +36,14 @@ public struct DisplayFrame: Equatable, Sendable {
     /// Final send counts of a binding removed by this command, including
     /// failed Off attempts. This is a receipt, not another live port.
     public let retiredPort: OutputPortDisplay?
+    /// The game controller source (idle without layout or device).
+    public let controller: ControllerDisplay
     public init(arpeggiatorModulation: ArpeggiatorModulationState = .init(), profile: ProfileFrame? = nil, contour: SpatialRoomContour? = nil,
                 selection: DeviceLatticeSelection, revision: SpatialDocumentRevision? = nil, scene: RuntimeSceneSnapshot? = nil,
                 sessionID: UUID? = nil, processedProfiles: UInt64 = 0, discardedProfiles: UInt64 = 0, overflowProfiles: UInt64 = 0,
                 soundingNoteOwners: [SoundingNoteOwner] = [], outputMonitor: [OutputMonitorSnapshot] = [], heldCells: [CompiledActiveCell] = [], ports: [OutputPortDisplay] = [], retiredPort: OutputPortDisplay? = nil,
-                partitionOwners: [UUID: UUID] = [:]) {
+                partitionOwners: [UUID: UUID] = [:], controller: ControllerDisplay = .idle) {
+        self.controller = controller
         self.arpeggiatorModulation = arpeggiatorModulation
         // The runtime plays partitions; what the presentation shows are the user's layers.
         func owner(_ id: UUID) -> UUID { partitionOwners[id] ?? id }

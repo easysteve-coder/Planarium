@@ -23,7 +23,7 @@ public enum SpatialOutputCommand: Equatable, Sendable {
 }
 
 /// Der testbare Besitz- und Übergangszustand des räumlichen Notenwegs.
-public struct SpatialNoteLedger: Sendable {
+public struct NoteLedger<Cell: LedgerCell>: Sendable {
     private struct Held: Hashable, Sendable {
         let destination: SpatialOutputDestination
         let channel: UInt8
@@ -44,9 +44,9 @@ public struct SpatialNoteLedger: Sendable {
     // Consume every measured Hold entry, including losing simultaneous entries.
     // A displaced owner cannot reclaim while the winner remains measured.
     // A measured winner exit exposes an already-entered neighbour as new music.
-    private var holdCells: [UUID: PolarDeviceLattice] = [:]
-    private var holdEntries: [UUID: SpatialRoutingEvaluation] = [:]
-    internal var holdOwnerCountByChannel: [String: Int] {
+    private var holdCells: [UUID: Cell] = [:]
+    private var holdEntries: [UUID: RoutingEvaluation<Cell>] = [:]
+    package var holdOwnerCountByChannel: [String: Int] {
         var result: [String: Int] = [:]
         for id in holdUntilNextRouting {
             for channel in Set((notesByRouting[id] ?? []).map { Channel(destination: $0.destination, number: $0.channel) }) {
@@ -57,22 +57,22 @@ public struct SpatialNoteLedger: Sendable {
     }
     private struct ToggleCell: Hashable, Sendable {
         let routingID: UUID
-        let cell: PolarDeviceLattice
+        let cell: Cell
     }
-    private var toggleDisplayCells: [ToggleCell: PolarDeviceLattice] = [:]
+    private var toggleDisplayCells: [ToggleCell: Cell] = [:]
     private var toggled: [ToggleCell: Set<Held>] = [:]
     private var toggleEntries: Set<ToggleCell> = []
     private var lastToggleTime: [ToggleCell: Double] = [:]
     /// Measured entry locks survive loss. Panic must capture them before
     /// releaseAll clears ownership, even when detection has already reset.
-    internal var occupiedToggleCells: [(routingID: UUID, cell: PolarDeviceLattice)] {
+    package var occupiedToggleCells: [(routingID: UUID, cell: Cell)] {
         toggleEntries.map { ($0.routingID, $0.cell) }
     }
-    internal var noteOwners: [(routingID: UUID, destination: SpatialOutputDestination, channel: UInt8, number: UInt8, latched: Bool)] {
+    package var noteOwners: [(routingID: UUID, destination: SpatialOutputDestination, channel: UInt8, number: UInt8, latched: Bool)] {
         notesByRouting.flatMap { id, notes in notes.map { (id, $0.destination, $0.channel, $0.note.number, holdUntilNextRouting.contains(id)) } }
         + toggled.flatMap { key, notes in notes.map { (key.routingID, $0.destination, $0.channel, $0.note.number, true) } }
     }
-    public var latchedCells: [(routingID: UUID, cell: PolarDeviceLattice)] {
+    public var latchedCells: [(routingID: UUID, cell: Cell)] {
         holdCells.compactMap { id, cell in
             (notesByRouting[id]?.isEmpty == false && holdUntilNextRouting.contains(id)) ? (id, cell) : nil
         } + toggled.compactMap { key, notes in notes.isEmpty ? nil : (key.routingID, toggleDisplayCells[key] ?? key.cell) }
@@ -106,11 +106,11 @@ public struct SpatialNoteLedger: Sendable {
     }
 
     /// Installation only removes unsupported notes. It cannot start new notes.
-    public mutating func retainSupported(by evaluations: [SpatialRoutingEvaluation]) -> [SpatialOutputCommand] {
+    public mutating func retainSupported(by evaluations: [RoutingEvaluation<Cell>]) -> [SpatialOutputCommand] {
         retainSupported(by: evaluations, preservingRoutingIDs: [])
     }
 
-    internal mutating func retainSupported(by evaluations: [SpatialRoutingEvaluation], preservingRoutingIDs: Set<UUID>) -> [SpatialOutputCommand] {
+    package mutating func retainSupported(by evaluations: [RoutingEvaluation<Cell>], preservingRoutingIDs: Set<UUID>) -> [SpatialOutputCommand] {
         var supported: [UUID: Set<Held>] = [:]
         for evaluation in evaluations {
             guard case .notes(let notes, let transition) = evaluation.value, transition != .toggle else { continue }
@@ -149,13 +149,13 @@ public struct SpatialNoteLedger: Sendable {
         }
     }
 
-    internal func ownsScheduledOff(_ command: SpatialOutputCommand) -> Bool {
+    package func ownsScheduledOff(_ command: SpatialOutputCommand) -> Bool {
         guard case let .scheduleOff(destination, channel, note, expected, _) = command else { return false }
         let held = Held(destination: destination, channel: channel, note: note)
         return pendingOverlap[held] == expected && generation[held] == expected
     }
 
-    internal mutating func releaseOverlapTails() -> [SpatialOutputCommand] {
+    package mutating func releaseOverlapTails() -> [SpatialOutputCommand] {
         let tails = Set(pendingOverlap.keys)
         pendingOverlap.removeAll(); overlapRouting.removeAll()
         for tail in tails { generation[tail] = nil }
@@ -186,7 +186,7 @@ public struct SpatialNoteLedger: Sendable {
             < (rhs.destination.stripID?.uuidString ?? "", rhs.channel, rhs.note.number, rhs.note.velocity)
     }
 
-    public mutating func apply(_ evaluations: [SpatialRoutingEvaluation], releasingLatchedRoutingIDs: Set<UUID> = [], measuredToggleEntries: [SpatialRoutingEvaluation]? = nil, profileTime: Double? = nil) -> [SpatialOutputCommand] {
+    public mutating func apply(_ evaluations: [RoutingEvaluation<Cell>], releasingLatchedRoutingIDs: Set<UUID> = [], measuredToggleEntries: [RoutingEvaluation<Cell>]? = nil, profileTime: Double? = nil) -> [SpatialOutputCommand] {
         var commands = releaseLatched(routingIDs: releasingLatchedRoutingIDs)
         let entries = Set(evaluations.compactMap { evaluation -> ToggleCell? in
             guard case .notes(_, .toggle) = evaluation.value, let cell = evaluation.cell else { return nil }
@@ -200,9 +200,9 @@ public struct SpatialNoteLedger: Sendable {
         toggleEntries = toggleEntries.intersection(measured).union(entries)
         let liveIDs = Set(evaluations.map(\.routingID))
         let outgoingHoldIDs = holdUntilNextRouting
-        var nextHoldEntries: [UUID: SpatialRoutingEvaluation] = [:]
+        var nextHoldEntries: [UUID: RoutingEvaluation<Cell>] = [:]
         var holdWinners: Set<UUID> = []
-        var winningChannels: [Channel: SpatialRoutingEvaluation] = [:]
+        var winningChannels: [Channel: RoutingEvaluation<Cell>] = [:]
         var freshChannels: Set<Channel> = []
         let measuredHoldIDs = Set(evaluations.compactMap { evaluation -> UUID? in
             if case .notes(let notes, .holdUntilNext) = evaluation.value, !notes.isEmpty { return evaluation.routingID }
@@ -213,20 +213,14 @@ public struct SpatialNoteLedger: Sendable {
         // preceding measured owner contact and at most one hand width.
         // releaseTransient preserves that contact across input loss; only a
         // subsequent measured apply replaces it.
-        func adjacentExit(_ candidate: SpatialRoutingEvaluation, channel: Channel) -> Bool {
+        func adjacentExit(_ candidate: RoutingEvaluation<Cell>, channel: Channel) -> Bool {
             guard let next = candidate.cell else { return false }
-            func point(_ cell: PolarDeviceLattice) -> (Double, Double) {
-                let angle = (Double(cell.sector) * 0.5 - 90) * Double.pi / 180
-                return (Double(cell.ring) * sin(angle), Double(cell.ring) * cos(angle))
-            }
-            let n = point(next)
             return outgoingHoldIDs.subtracting(measuredHoldIDs).contains { id in
                 guard let old = holdEntries[id]?.cell,
                       (notesByRouting[id] ?? []).contains(where: {
                           $0.destination == channel.destination && $0.channel == channel.number
                       }) else { return false }
-                let p = point(old)
-                return hypot(n.0 - p.0, n.1 - p.1) <= 10
+                return next.continuesContact(from: old)
             }
         }
         // Fresh entries compete by representative distance and document order.
@@ -397,27 +391,11 @@ public struct SpatialNoteLedger: Sendable {
         return removedCommands(from: before)
     }
 
-    /// Editing one painted surface leaves separate loops in the layer intact.
-    internal mutating func retainToggleCells(from current: CompiledInstrument?, to replacement: CompiledInstrument) -> [SpatialOutputCommand] {
+    /// Keeps toggled loops whose (routing, cell) the source still supports
+    /// after a document change; releases the others.
+    package mutating func retainToggles(where keeps: (_ routingID: UUID, _ cell: Cell) -> Bool) -> [SpatialOutputCommand] {
         let before = owned.union(pendingOverlap.keys)
-        func supported(_ key: ToggleCell) -> Bool {
-            guard let current, current.revision.session == replacement.revision.session,
-                  let old = current.layers.first(where: { $0.routings.contains { $0.id == key.routingID } }),
-                  let new = replacement.layers.first(where: { $0.id == old.id }),
-                  containsCell(key.cell, in: old.cells), containsCell(key.cell, in: new.cells),
-                  let routing = old.routings.first(where: { $0.id == key.routingID }),
-                  let newRouting = new.routings.first(where: { $0.id == key.routingID }),
-                  routing.target == newRouting.target, routing.program == newRouting.program, old.midiTarget == new.midiTarget else { return false }
-            let oldRegion = Set(routing.toggleRegionByCell.filter { $0.value == key.cell }.map(\.key))
-            let newRegion = Set(newRouting.toggleRegionByCell.filter { $0.value == key.cell }.map(\.key))
-            guard oldRegion == newRegion else { return false }
-            let oldHandle = CompiledActiveCell(layerID: old.id, cell: key.cell, revision: current.revision)
-            let newHandle = CompiledActiveCell(layerID: new.id, cell: key.cell, revision: replacement.revision)
-            let oldValue = try? current.evaluate(active: [old.id: oldHandle], activeLayerIDs: [old.id]).first { $0.routingID == key.routingID }?.value
-            let newValue = try? replacement.evaluate(active: [new.id: newHandle], activeLayerIDs: [new.id]).first { $0.routingID == key.routingID }?.value
-            guard let oldValue, let newValue else { return false }
-            return oldValue == newValue
-        }
+        func supported(_ key: ToggleCell) -> Bool { keeps(key.routingID, key.cell) }
         toggled = toggled.filter { supported($0.key) }
         toggleEntries = toggleEntries.filter(supported)
         lastToggleTime = lastToggleTime.filter { supported($0.key) }

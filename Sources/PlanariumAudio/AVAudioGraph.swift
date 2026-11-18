@@ -1,9 +1,9 @@
 import AudioToolbox
 import AVFoundation
 import Foundation
-import PlanariumDomain
+import PlanariumMusicCore
 import PlanariumObjCCatch
-@_spi(AudioHost) import PlanariumRuntime
+@_spi(AudioHost) import PlanariumSoundCore
 import PlanariumHostClockDSP
 
 /// Sole native-engine adapter, owned by AudioHost. The persistent converter
